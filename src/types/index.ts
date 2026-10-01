@@ -8,7 +8,16 @@ export type CategoryId =
   | 'barista'
   | 'mua'
   | 'elektronik'
-  | 'musik';
+  | 'musik'
+  | 'otomotif'
+  | 'kebersihan'
+  | 'pendidikan'
+  | 'event'
+  | 'kebugaran'
+  | 'percetakan'
+  | 'hewan'
+  | 'lainnya'
+  | (string & {});
 
 export interface Category {
   id: CategoryId;

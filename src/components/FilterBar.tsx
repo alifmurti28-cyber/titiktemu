@@ -3,7 +3,8 @@ import { CategoryId } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { 
   LayoutGrid, Camera, Palette, Utensils, Hammer, Code, Coffee, 
-  Sparkles, Wrench, Music, SlidersHorizontal, Check, Heart 
+  Sparkles, Wrench, Music, Car, Wind, GraduationCap, Mic,
+  Dumbbell, Printer, MoreHorizontal, SlidersHorizontal, Check, Heart 
 } from 'lucide-react';
 
 interface FilterBarProps {
@@ -46,6 +47,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       case 'Sparkles': return <Sparkles className="h-4 w-4" />;
       case 'Wrench': return <Wrench className="h-4 w-4" />;
       case 'Music': return <Music className="h-4 w-4" />;
+      case 'Car': return <Car className="h-4 w-4" />;
+      case 'Wind': return <Wind className="h-4 w-4" />;
+      case 'GraduationCap': return <GraduationCap className="h-4 w-4" />;
+      case 'Mic': return <Mic className="h-4 w-4" />;
+      case 'Dumbbell': return <Dumbbell className="h-4 w-4" />;
+      case 'Printer': return <Printer className="h-4 w-4" />;
+      case 'Heart': return <Heart className="h-4 w-4" />;
+      case 'MoreHorizontal': return <MoreHorizontal className="h-4 w-4" />;
       default: return <LayoutGrid className="h-4 w-4" />;
     }
   };

@@ -8,6 +8,7 @@ import {
   addReviewToProfile, getFavorites, toggleFavorite, 
   isAdminLoggedIn, setAdminLogin, resetProfilesToDefault, formatRupiah 
 } from './utils/storage';
+import { DEFAULT_CITIES } from './data/initialData';
 
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -63,13 +64,13 @@ export default function App() {
     setIsAdmin(isAdminLoggedIn());
   }, []);
 
-  // Distinct cities list from active profiles
+  // Distinct cities list from default cities and active profiles
   const cities = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(DEFAULT_CITIES);
     activeProfiles.forEach((p) => {
       if (p.city) set.add(p.city);
     });
-    return Array.from(set).sort();
+    return Array.from(set);
   }, [activeProfiles]);
 
   // Handle WhatsApp Click

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CategoryId, PricePackage, WorkOutput } from '../types';
-import { CATEGORIES } from '../data/initialData';
+import { CATEGORIES, DEFAULT_CITIES } from '../data/initialData';
 import { 
   X, Sparkles, Upload, Plus, Trash2, CheckCircle2, 
   AlertCircle, DollarSign, MessageCircle 
@@ -24,10 +24,12 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
   const [businessName, setBusinessName] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<CategoryId>('fotografi');
+  const [customCategory, setCustomCategory] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
-  const [city, setCity] = useState('Jakarta Selatan');
+  const [cityOption, setCityOption] = useState('Jakarta Selatan');
+  const [customCity, setCustomCity] = useState('');
   const [fullAddress, setFullAddress] = useState('');
   const [bio, setBio] = useState('');
   const [startingPrice, setStartingPrice] = useState<number>(350000);
@@ -152,14 +154,17 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const resolvedCategory = category === 'lainnya' ? (customCategory.trim() || 'Lainnya') : category;
+    const resolvedCity = cityOption === 'lainnya' ? (customCity.trim() || 'Lainnya') : cityOption;
+
     const payload = {
       name: name.trim(),
       businessName: businessName.trim() || undefined,
       title: title.trim(),
-      category,
+      category: resolvedCategory,
       avatar,
       bio: bio.trim(),
-      city: city.trim(),
+      city: resolvedCity,
       fullAddress: fullAddress.trim(),
       whatsapp: whatsapp.trim(),
       instagram: instagram.trim() || undefined,
@@ -297,6 +302,22 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                         </option>
                       ))}
                     </select>
+
+                    {category === 'lainnya' && (
+                      <div className="mt-2.5 animate-fade-in rounded-xl border-2 border-[#FF5A5F] bg-amber-50/60 p-2.5 shadow-[2px_2px_0px_#1A1A1A]">
+                        <label className="block text-[11px] font-black text-[#FF5A5F] mb-1">
+                          Tuliskan Kategori Jasa Anda *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          placeholder="Contoh: Sablon Kaos, Voice Actor, Pindahan Rumah, dll"
+                          className="w-full rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#1A1A1A] border border-[#1A1A1A] outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -394,14 +415,34 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                     <label className="block text-xs font-bold text-[#1A1A1A] mb-1">
                       Kota Domisili *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="Contoh: Jakarta, Bandung, dll"
-                      className="w-full rounded-xl bg-white px-3 py-2 text-xs font-bold text-[#1A1A1A] border-2 border-[#1A1A1A] outline-none"
-                    />
+                    <select
+                      value={cityOption}
+                      onChange={(e) => setCityOption(e.target.value)}
+                      className="w-full rounded-xl bg-white px-3 py-2 text-xs font-bold text-[#1A1A1A] border-2 border-[#1A1A1A] outline-none cursor-pointer"
+                    >
+                      {DEFAULT_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                      <option value="lainnya">Lainnya (Ketik Kota Anda Sendiri...)</option>
+                    </select>
+
+                    {cityOption === 'lainnya' && (
+                      <div className="mt-2.5 animate-fade-in rounded-xl border-2 border-[#FF5A5F] bg-amber-50/60 p-2.5 shadow-[2px_2px_0px_#1A1A1A]">
+                        <label className="block text-[11px] font-black text-[#FF5A5F] mb-1">
+                          Tuliskan Kota / Wilayah Anda *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={customCity}
+                          onChange={(e) => setCustomCity(e.target.value)}
+                          placeholder="Contoh: Solo, Cirebon, Makassar, Palembang, dll"
+                          className="w-full rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#1A1A1A] border border-[#1A1A1A] outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 

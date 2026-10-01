@@ -1,5 +1,24 @@
 import { Category, WorkerProfile } from '../types';
 
+export const DEFAULT_CITIES = [
+  'Jakarta Timur',
+  'Jakarta Utara',
+  'Jakarta Selatan',
+  'Jakarta Barat',
+  'Jakarta Pusat',
+  'Yogyakarta',
+  'Bandung',
+  'Surabaya',
+  'Tangerang',
+  'Tangerang Selatan',
+  'Bekasi',
+  'Depok',
+  'Semarang',
+  'Malang',
+  'Denpasar / Bali',
+  'Medan',
+];
+
 export const CATEGORIES: Category[] = [
   { id: 'all', name: 'Semua Kategori', iconName: 'LayoutGrid' },
   { id: 'fotografi', name: 'Fotografi & Video', iconName: 'Camera' },
@@ -11,6 +30,14 @@ export const CATEGORIES: Category[] = [
   { id: 'mua', name: 'MUA & Fashion', iconName: 'Sparkles' },
   { id: 'elektronik', name: 'Service Elektronik', iconName: 'Wrench' },
   { id: 'musik', name: 'Musik & Audio', iconName: 'Music' },
+  { id: 'otomotif', name: 'Bengkel & Otomotif', iconName: 'Car' },
+  { id: 'kebersihan', name: 'Kebersihan & Cuci AC', iconName: 'Wind' },
+  { id: 'pendidikan', name: 'Tutor & Kursus Privat', iconName: 'GraduationCap' },
+  { id: 'event', name: 'Event Organizer & MC', iconName: 'Mic' },
+  { id: 'kebugaran', name: 'Personal Trainer & Gym', iconName: 'Dumbbell' },
+  { id: 'percetakan', name: 'Percetakan & Konveksi', iconName: 'Printer' },
+  { id: 'hewan', name: 'Pet Care & Grooming', iconName: 'Heart' },
+  { id: 'lainnya', name: 'Lainnya', iconName: 'MoreHorizontal' },
 ];
 
 export const INITIAL_PROFILES: WorkerProfile[] = [
@@ -919,5 +946,225 @@ export const INITIAL_PROFILES: WorkerProfile[] = [
     submittedAt: '2026-08-18',
     whatsappClicks: 118,
     viewsCount: 1045
+  },
+  {
+    id: 'wk-11',
+    name: 'Rian Pratama',
+    businessName: 'Timur Sablon & Konveksi',
+    title: 'Spesialis Sablon Kaos Manual & Konveksi Kaos Komunitas',
+    category: 'percetakan',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
+    bio: 'Workshop sablon manual & konveksi kaos distro di Rawamangun Jakarta Timur. Berpengalaman memproduksi merchandise band, seragam kantor, gathering komunitas, dan totebag. Menggunakan tinta plastisol & discharge berkualitas awet tidak mudah pecah.',
+    city: 'Jakarta Timur',
+    fullAddress: 'Jl. Balai Pustaka Timur No. 34, Rawamangun, Pulo Gadung, Jakarta Timur 13220',
+    whatsapp: '6281288334411',
+    instagram: '@timursablon.co',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 55000,
+    priceUnit: 'pcs (min. 24 pcs)',
+    pricePackages: [
+      {
+        id: 'pkg-11-1',
+        name: 'Kaos Cotton Combed 24s/30s + Sablon Plastisol',
+        price: 55000,
+        unit: 'pcs (min. 24 pcs)',
+        description: 'Bahan adem katun combed 100% dengan sablon plastisol halus tahan cuci.',
+        features: [
+          'Cotton Combed 30s/24s original',
+          'Sablon plastisol up to 3 warna',
+          'Jahit rantai standar distro',
+          'Finishing press hot steam',
+          'Free packing plastik rapi tiap kaos'
+        ]
+      },
+      {
+        id: 'pkg-11-2',
+        name: 'Polo Shirt & Kemeja Seragam Bordir Komputer',
+        price: 95000,
+        unit: 'pcs (min. 12 pcs)',
+        description: 'Bordir komputer presisi rapi untuk seragam kerja, event gathering, atau komunitas.',
+        features: [
+          'Bahan Lacoste CVC / American Drill',
+          'Bordir komputer logo dada & punggung',
+          'Bisa request ukuran campur S-XXL',
+          'Pengerjaan 7-10 hari kerja'
+        ],
+        popular: true
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-11-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
+        title: 'Produksi Sablon Kaos Plastisol Komunitas',
+        description: 'Sablon manual detail tinggi warna tajam pada bahan combed 24s.'
+      }
+    ],
+    rating: 4.95,
+    reviewCount: 34,
+    reviews: [
+      {
+        id: 'rev-11-1',
+        author: 'Dimas Wicaksono',
+        rating: 5,
+        date: '15 Sep 2026',
+        comment: 'Pesan 60 kaos gathering kantor, pengerjaan tepat waktu dan sablonannya rapi banget!',
+        clientType: 'Event Organizer'
+      }
+    ],
+    verified: true,
+    featured: false,
+    status: 'active',
+    submittedAt: '2026-08-20',
+    whatsappClicks: 130,
+    viewsCount: 1120
+  },
+  {
+    id: 'wk-12',
+    name: 'Hendra Saputra',
+    businessName: 'North Coating & Auto Detailing',
+    title: 'Spesialis Salon Mobil, Paint Protection & Nano Ceramic Coating',
+    category: 'otomotif',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=800&q=80',
+    bio: 'Studio detailing mobil profesional di Kelapa Gading Jakarta Utara. Menangani pembersihan jamur kaca, poles bodi 3-step koreksi cat, deep interior detailing anti-bakteri, hingga aplikasi coating nano ceramic 9H bergaransi 2 tahun.',
+    city: 'Jakarta Utara',
+    fullAddress: 'Jl. Boulevard Raya Blok PA 19 No. 8, Kelapa Gading, Jakarta Utara 14240',
+    whatsapp: '6281389007722',
+    instagram: '@northcoating.id',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 350000,
+    priceUnit: 'mobil',
+    pricePackages: [
+      {
+        id: 'pkg-12-1',
+        name: 'Deep Interior Detailing & Ozone Fogging',
+        price: 350000,
+        unit: 'paket interior',
+        description: 'Pembersihan jok, plafon, karpet dasar, dashboard dan sterilisasi kabin dari bau rokok & bakteri.',
+        features: [
+          'Vakum & ekstraksi noda jok fabric/leather',
+          'Pembersihan sela AC & blower',
+          'Fogging desinfektan aroma segar',
+          'Dressing interior matte natural anti-debu'
+        ]
+      },
+      {
+        id: 'pkg-12-2',
+        name: 'Full Body Paint Correction & 9H Ceramic Coating',
+        price: 1800000,
+        unit: 'paket komplit',
+        description: 'Hilangkan baret halus/swirl mark dan lindungi cat mobil dengan kilap basah (wet look) tahan 2 tahun.',
+        features: [
+          '3-step paint correction compound & polish',
+          'Aplikasi 2 layer nano ceramic 9H',
+          'Water repellent efek daun talas',
+          'Garansi & maintenance 2 tahun'
+        ],
+        popular: true
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-12-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=800&q=80',
+        title: 'Poles Paint Correction & Coating Wet Look',
+        description: 'Hasil finishing cat hitam mengkilap bebas baret swirl.'
+      }
+    ],
+    rating: 4.97,
+    reviewCount: 42,
+    reviews: [
+      {
+        id: 'rev-12-1',
+        author: 'Edwin Gunawan',
+        rating: 5,
+        date: '20 Sep 2026',
+        comment: 'Cat mobil saya yang tadinya kusam jadi mengkilap seperti baru keluar dealer. Servisnya sangat teliti!',
+        clientType: 'Owner Mobil Pribadi'
+      }
+    ],
+    verified: true,
+    featured: true,
+    status: 'active',
+    submittedAt: '2026-08-25',
+    whatsappClicks: 175,
+    viewsCount: 1540
+  },
+  {
+    id: 'wk-13',
+    name: 'Saraswati & Team',
+    businessName: 'Jogja Intimate Wedding & Event',
+    title: 'Wedding Organizer & Event Planner Tradisional - Modern',
+    category: 'event',
+    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
+    bio: 'Wedding organizer berbasis di Yogyakarta dengan spesialisasi konsep intimate wedding, prosesi adat Jawa Kraton yang pakem namun luwes, hingga modern rustic. Tim kami mendampingi calon pengantin dari pemilihan vendor, rundown detail, hingga eksekusi hari-H yang tenang dan berkesan.',
+    city: 'Yogyakarta',
+    fullAddress: 'Jl. Mondorakan No. 45, Jagalan, Kotagede, Kota Yogyakarta, D.I. Yogyakarta 55192',
+    whatsapp: '6281709988112',
+    instagram: '@jogjawedding.saraswati',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 3500000,
+    priceUnit: 'acara',
+    pricePackages: [
+      {
+        id: 'pkg-13-1',
+        name: 'On The Day Coordination (D-Day Only)',
+        price: 3500000,
+        unit: 'event',
+        description: 'Eksekusi lapangan saat hari pernikahan dengan 6 crew profesional berseragam rapi.',
+        features: [
+          '6 orang kru WO standby dari subuh sampai selesai',
+          'Penyusunan rundown detail menit-per-menit',
+          'Technical meeting vendor H-7',
+          'Protokol koordinasi keluarga & tamu VIP'
+        ]
+      },
+      {
+        id: 'pkg-13-2',
+        name: 'Full Planning & Vendor Management Jogja',
+        price: 7500000,
+        unit: 'paket komplit',
+        description: 'Pendampingan lengkap dari nol: budgeting, kurasi venue, catering, dekorasi, hingga MC dan dokumentasi.',
+        features: [
+          'Konsultasi konsep & budgeting tanpa batas',
+          'Rekomendasi vendor terpercaya dengan diskon khusus',
+          'Gladi resik prosesi adat H-1',
+          '8 orang kru WO hari-H + HT komunikasi'
+        ],
+        popular: true
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-13-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
+        title: 'Intimate Garden Wedding di Kaliurang Jogja',
+        description: 'Koordinasi pernikahan hangat dengan dekorasi lampu gantung natural.'
+      }
+    ],
+    rating: 4.98,
+    reviewCount: 45,
+    reviews: [
+      {
+        id: 'rev-13-1',
+        author: 'Anisa & Rizky',
+        rating: 5,
+        date: '11 Sep 2026',
+        comment: 'Mbak Saras dan tim luar biasa tenang dan cekatan. Acara berjalan tepat waktu dan keluarga besar sangat terkesan!',
+        clientType: 'Pengantin'
+      }
+    ],
+    verified: true,
+    featured: true,
+    status: 'active',
+    submittedAt: '2026-08-28',
+    whatsappClicks: 210,
+    viewsCount: 1820
   }
 ];
