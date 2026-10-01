@@ -1,0 +1,8 @@
+{
+  "name": "Titik Temu",
+  "description": "Platform direktori jasa dan pengusaha kreatif terlengkap. Cek portofolio, price list transparan, dan hubungi langsung via WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
