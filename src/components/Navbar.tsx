@@ -34,13 +34,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-[#1A1A1A]">
           <a 
             href="#direktori" 
-            style={{ paddingTop: '4px', marginLeft: '12px' }}
+            style={{ paddingTop: '4px', marginLeft: '20px', marginRight: '5px', marginTop: '0px' }}
             className="hover:text-[#6B4EFE] transition-colors relative py-1 hover:underline underline-offset-4 decoration-2"
           >
             Eksplor Jasa
           </a>
           <a 
             href="#cara-kerja" 
+            style={{ marginLeft: '-5px' }}
             className="hover:text-[#6B4EFE] transition-colors relative py-1 hover:underline underline-offset-4 decoration-2"
           >
             Cara Kerja
@@ -48,6 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button 
             type="button"
             onClick={onToggleFavoritesView}
+            style={{ marginRight: '19px' }}
             className={`flex items-center gap-2 rounded-xl px-3 py-1.5 transition-all cursor-pointer border-2 ${
               showingFavoritesOnly 
                 ? 'bg-[#FFD166] text-[#1A1A1A] border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]' 
@@ -64,6 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
           <a 
             href="#kontak-admin" 
+            style={{ marginRight: '10px' }}
             className="hover:text-[#6B4EFE] transition-colors relative py-1 hover:underline underline-offset-4 decoration-2"
           >
             Hubungi Admin

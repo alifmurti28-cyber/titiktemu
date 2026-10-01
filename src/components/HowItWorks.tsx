@@ -10,7 +10,7 @@ export const HowItWorks: React.FC = () => {
           <div className="inline-block rounded-full bg-[#FFD166] px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
             Alur Mudah Tanpa Ribet
           </div>
-          <h2 className="font-heading text-3xl sm:text-4xl font-black text-[#1A1A1A] tracking-tight pt-2">
+          <h2 style={{ color: '#ff7600' }} className="font-heading text-3xl sm:text-4xl font-black tracking-tight pt-2">
             Bagaimana Titik Temu Bekerja?
           </h2>
           <p className="text-sm sm:text-base text-[#1A1A1A]/70 font-medium">
