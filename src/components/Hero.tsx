@@ -9,6 +9,7 @@ interface HeroProps {
   cities: string[];
   totalProfiles: number;
   onOpenSubmitModal: () => void;
+  onSelectProfileById?: (id: string) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -18,7 +19,8 @@ export const Hero: React.FC<HeroProps> = ({
   onCityChange,
   cities,
   totalProfiles,
-  onOpenSubmitModal
+  onOpenSubmitModal,
+  onSelectProfileById
 }) => {
   return (
     <section className="relative overflow-hidden border-b-2 border-[#1A1A1A] bg-[#FDFCF8] pt-12 pb-16 lg:pt-16 lg:pb-24">
@@ -110,15 +112,20 @@ export const Hero: React.FC<HeroProps> = ({
           ))}
         </div>
 
-        {/* Mini Showcase preview cards (from Variation 4) */}
+        {/* Mini Showcase preview cards (Clickable) */}
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-3xl text-left">
           
-          {/* Card 1: Chef Danang */}
-          <div className="brutal-card p-5 sm:p-6 bg-white relative overflow-hidden group">
+          {/* Card 1: Chef Danang (wk-9) */}
+          <button
+            type="button"
+            onClick={() => onSelectProfileById?.('wk-9')}
+            className="brutal-card p-5 sm:p-6 bg-white relative overflow-hidden group text-left cursor-pointer transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[7px_7px_0px_#1A1A1A] active:translate-y-0 active:shadow-[3px_3px_0px_#1A1A1A] block w-full"
+            title="Klik untuk melihat menu, pricelist, dan hubungi Chef Danang"
+          >
             <div className="absolute top-4 right-4 rounded-full bg-[#FFD166] px-2.5 py-0.5 text-[11px] font-black border border-[#1A1A1A]">
               ⭐ 4.96
             </div>
-            <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+            <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A] group-hover:text-[#6B4EFE] transition-colors">
               Chef Danang Pratama
             </h3>
             <p className="text-xs font-bold text-[#6B4EFE] mt-0.5">
@@ -134,17 +141,22 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="mt-3 flex items-center justify-between text-xs font-bold">
               <span>Mulai <strong className="text-sm font-black text-[#1A1A1A]">Rp38.000</strong> /porsi</span>
               <span className="text-[#FF5A5F] group-hover:underline inline-flex items-center gap-1 font-extrabold">
-                Lihat Menu →
+                Lihat Menu & Chat WA →
               </span>
             </div>
-          </div>
+          </button>
 
-          {/* Card 2: Nadya Salsabila */}
-          <div className="brutal-card p-5 sm:p-6 bg-white relative overflow-hidden group">
+          {/* Card 2: Nadya Salsabila (wk-10) */}
+          <button
+            type="button"
+            onClick={() => onSelectProfileById?.('wk-10')}
+            className="brutal-card p-5 sm:p-6 bg-white relative overflow-hidden group text-left cursor-pointer transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[7px_7px_0px_#1A1A1A] active:translate-y-0 active:shadow-[3px_3px_0px_#1A1A1A] block w-full"
+            title="Klik untuk melihat kue, pricelist, dan hubungi Nadya Salsabila"
+          >
             <div className="absolute top-4 right-4 rounded-full bg-[#FFD166] px-2.5 py-0.5 text-[11px] font-black border border-[#1A1A1A]">
               ⭐ 4.98
             </div>
-            <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+            <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A] group-hover:text-[#6B4EFE] transition-colors">
               Nadya Salsabila
             </h3>
             <p className="text-xs font-bold text-[#6B4EFE] mt-0.5">
@@ -160,10 +172,10 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="mt-3 flex items-center justify-between text-xs font-bold">
               <span>Mulai <strong className="text-sm font-black text-[#1A1A1A]">Rp350.000</strong> /kue</span>
               <span className="text-[#FF5A5F] group-hover:underline inline-flex items-center gap-1 font-extrabold">
-                Lihat Kue →
+                Lihat Kue & Chat WA →
               </span>
             </div>
-          </div>
+          </button>
 
         </div>
 

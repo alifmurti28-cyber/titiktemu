@@ -16,6 +16,7 @@ export type CategoryId =
   | 'kebugaran'
   | 'percetakan'
   | 'hewan'
+  | 'logistik'
   | 'lainnya'
   | (string & {});
 

@@ -37,6 +37,7 @@ export const CATEGORIES: Category[] = [
   { id: 'kebugaran', name: 'Personal Trainer & Gym', iconName: 'Dumbbell' },
   { id: 'percetakan', name: 'Percetakan & Konveksi', iconName: 'Printer' },
   { id: 'hewan', name: 'Pet Care & Grooming', iconName: 'Heart' },
+  { id: 'logistik', name: 'Barang & Logistik', iconName: 'Truck' },
   { id: 'lainnya', name: 'Lainnya', iconName: 'MoreHorizontal' },
 ];
 
@@ -1166,5 +1167,108 @@ export const INITIAL_PROFILES: WorkerProfile[] = [
     submittedAt: '2026-08-28',
     whatsappClicks: 210,
     viewsCount: 1820
+  },
+  {
+    id: 'wk-14',
+    name: 'Budi Santoso & Armada',
+    businessName: 'Sentosa Express Cargo & Pindahan',
+    title: 'Penyedia Sewa Truk Engkel, Pick Up, & Logistik Pindahan',
+    category: 'logistik',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
+    bio: 'Penyedia jasa logistik mandiri, ekspedisi pasokan barang dagangan UMKM, sewa armada pick-up & truk blind van, hingga layanan komplit pindahan rumah/apartemen/kantor. Armada bersih terawat, driver berpengalaman, dan kru bongkar muat handal dengan jaminan barang aman terlindungi.',
+    city: 'Jakarta Timur',
+    fullAddress: 'Jl. Raya Bogor KM 22 No. 16, Ciracas, Jakarta Timur 13740',
+    whatsapp: '6281312348899',
+    instagram: '@sentosalogistik.id',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 250000,
+    priceUnit: 'trip / rit',
+    pricePackages: [
+      {
+        id: 'pkg-14-1',
+        name: 'Sewa Pick Up Bak / Box Dalam Kota',
+        price: 250000,
+        unit: 'per trip / rit',
+        description: 'Pengiriman barang dagangan, pasokan toko, atau kargo harian area Jabodetabek.',
+        features: [
+          'Armada Pick Up GranMax bersih & terawat',
+          'Termasuk driver berpengalaman & BBM',
+          'Sudah termasuk terpal anti-hujan & tali pengikat tebal',
+          'Kapasitas muatan hingga 1 ton',
+          'Pelacakan update posisi via WhatsApp'
+        ]
+      },
+      {
+        id: 'pkg-14-2',
+        name: 'Paket All-in Pindahan Rumah & Apartemen',
+        price: 850000,
+        unit: 'paket lengkap',
+        description: 'Solusi santai pindahan: armada + bensin + 2 kru bongkar muat profesional + wrapping kardus.',
+        features: [
+          'Armada Truk Engkel Box kapasitas besar',
+          '2 orang tenaga helper angkut profesional',
+          'Free bubble wrap & plastik wrapping barang elektronik',
+          'Bantu tata furnitur di lokasi tujuan',
+          'Jaminan barang aman tanpa lecet'
+        ],
+        popular: true
+      },
+      {
+        id: 'pkg-14-3',
+        name: 'Distribusi Logistik Rutin Bisnis / B2B',
+        price: 3200000,
+        unit: 'per minggu / kontrak',
+        description: 'Layanan drop point pasokan barang dari gudang ke toko/cabang secara terjadwal.',
+        features: [
+          'Jadwal pengiriman fleksibel sesuai jam operasional toko',
+          'Surat jalan & bukti tanda terima digital',
+          'Prioritas armada standby',
+          'Laporan rekap pengiriman berkala'
+        ]
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-14-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
+        title: 'Armada Siap Bongkar Muat Barang Gudang',
+        description: 'Layanan logistik barang dagangan dan pasokan logistik kantor.'
+      },
+      {
+        id: 'wo-14-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80',
+        title: 'Kru Pindahan & Packing Aman',
+        description: 'Proses pemindahan perabot rumah tangga dengan pelindung wrapping tebal.'
+      }
+    ],
+    rating: 4.96,
+    reviewCount: 38,
+    reviews: [
+      {
+        id: 'rev-14-1',
+        author: 'Bambang Sudibyo',
+        rating: 5,
+        date: '27 Sep 2026',
+        comment: 'Pindahan rumah jadi enteng banget! Mas Budi dan kru kerjanya gesit, hati-hati angkut lemari kaca & kulkas, barang aman semua.',
+        clientType: 'Klien Pindahan Rumah'
+      },
+      {
+        id: 'rev-14-2',
+        author: 'Siti Handayani',
+        rating: 5,
+        date: '19 Sep 2026',
+        comment: 'Driver on-time, ramah, dan biaya transparan tanpa ada pungli tambahan di jalan. Mantap!',
+        clientType: 'Owner Toko Grosir'
+      }
+    ],
+    verified: true,
+    featured: true,
+    status: 'active',
+    submittedAt: '2026-09-01',
+    whatsappClicks: 165,
+    viewsCount: 1420
   }
 ];

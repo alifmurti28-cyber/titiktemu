@@ -8,7 +8,7 @@ import {
   addReviewToProfile, getFavorites, toggleFavorite, 
   isAdminLoggedIn, setAdminLogin, resetProfilesToDefault, formatRupiah 
 } from './utils/storage';
-import { DEFAULT_CITIES } from './data/initialData';
+import { DEFAULT_CITIES, INITIAL_PROFILES } from './data/initialData';
 
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -295,6 +295,12 @@ export default function App() {
         cities={cities}
         totalProfiles={activeProfiles.length}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+        onSelectProfileById={(id: string) => {
+          const target = activeProfiles.find((p) => p.id === id) || INITIAL_PROFILES.find((p) => p.id === id);
+          if (target) {
+            handleSelectProfile(target);
+          }
+        }}
       />
 
       {/* Filter and Category Bar */}
