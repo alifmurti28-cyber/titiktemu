@@ -1,10 +1,10 @@
 import { WorkerProfile, Review } from '../types';
 import { INITIAL_PROFILES, INITIAL_PENDING_PROFILES } from '../data/initialData';
 
-const STORAGE_KEY_PROFILES = 'titiktemu_active_profiles_v1';
-const STORAGE_KEY_PENDING = 'titiktemu_pending_profiles_v1';
-const STORAGE_KEY_PROCESSED_PENDING = 'titiktemu_processed_pending_v1';
-const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v1';
+const STORAGE_KEY_PROFILES = 'titiktemu_active_profiles_v2';
+const STORAGE_KEY_PENDING = 'titiktemu_pending_profiles_v2';
+const STORAGE_KEY_PROCESSED_PENDING = 'titiktemu_processed_pending_v2';
+const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v2';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
 
@@ -17,11 +17,12 @@ export function getActiveProfiles(): WorkerProfile[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Check if new default profiles (like kuliner) are missing in stored array
+      // Check if new default profiles (like Muhammad Alif Murti) are missing in stored array
       const existingIds = new Set(parsed.map((p: WorkerProfile) => p.id));
       const missingInitial = INITIAL_PROFILES.filter((ip) => !existingIds.has(ip.id));
       if (missingInitial.length > 0) {
-        const merged = [...parsed, ...missingInitial];
+        // Prepend missing default profiles to the front
+        const merged = [...missingInitial, ...parsed];
         localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(merged));
         return merged;
       }

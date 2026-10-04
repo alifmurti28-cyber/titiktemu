@@ -43,6 +43,119 @@ export const CATEGORIES: Category[] = [
 
 export const INITIAL_PROFILES: WorkerProfile[] = [
   {
+    id: 'wk-alif-murti',
+    name: 'Muhammad Alif Murti',
+    businessName: 'Murti Creative & Digital Studio',
+    title: 'Creative Designer, Branding Specialist & Web Developer',
+    category: 'desain',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+    bio: 'Spesialis desain identitas visual, branding UMKM/korporat, UI/UX website, dan digital creative direction. Berpengalaman mengerjakan berbagai proyek portofolio komersial dengan pendekatan modern, tepat waktu, dan hasil berstandar profesional.',
+    city: 'Jakarta Timur',
+    fullAddress: 'Jl. Pemuda No. 28, Rawamangun, Jakarta Timur 13220',
+    whatsapp: '6281234567890',
+    instagram: '@alifmurti_28',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 350000,
+    priceUnit: 'proyek / paket',
+    pricePackages: [
+      {
+        id: 'pkg-alif-1',
+        name: 'Starter Logo & Visual Identity',
+        price: 350000,
+        unit: 'paket desain',
+        description: 'Desain logo profesional modern + panduan warna dan tipografi.',
+        features: [
+          '2 Pilihan konsep logo modern',
+          'File master vector (AI, EPS, PDF)',
+          'High-res PNG transparan & JPEG',
+          'Revisi minor hingga 3x',
+          'Panduan color palette & typography'
+        ]
+      },
+      {
+        id: 'pkg-alif-2',
+        name: 'Full Brand Guideline & Social Media Kit',
+        price: 850000,
+        unit: 'paket lengkap',
+        description: 'Paket komplit identitas brand untuk bisnis yang siap scale-up.',
+        features: [
+          'Semua fitur paket Starter',
+          'Template feed & story Instagram (6 desain)',
+          'Desain kartu nama & kop surat',
+          'Dokumen Brand Book / Guideline PDF',
+          'Konsultasi arah visual brand'
+        ],
+        popular: true
+      },
+      {
+        id: 'pkg-alif-3',
+        name: 'Custom Web & Interactive Design',
+        price: 2500000,
+        unit: 'per website',
+        description: 'Pembuatan landing page atau company profile modern berkecepatan tinggi.',
+        features: [
+          'Desain responsif mobile & desktop',
+          'Integrasi tombol WhatsApp & formulir interaktif',
+          'Optimasi SEO & kecepatan load maksimal',
+          'Free domain & hosting setup'
+        ]
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-alif-pdf-1',
+        type: 'pdf',
+        url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
+        title: 'Portofolio_Karya_Alif_Murti_2026.pdf',
+        description: 'Dokumen Portofolio Resmi & Company Profile (1.2 MB)',
+        fileName: 'Portofolio_Karya_Alif_Murti_2026.pdf',
+        fileSize: '1.2 MB'
+      },
+      {
+        id: 'wo-alif-img-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+        title: 'Brand Identity & Visual System Showcases',
+        description: 'Koleksi identitas visual dan portofolio desain proyek komersial.'
+      },
+      {
+        id: 'wo-alif-img-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=800&q=80',
+        title: 'Social Media Kit & Typography Guidelines',
+        description: 'Template feed dan sistem tata letak grafis terpadu.'
+      }
+    ],
+    rating: 5.0,
+    reviewCount: 4,
+    reviews: [
+      {
+        id: 'rev-alif-1',
+        author: 'Dian Prasetya',
+        rating: 5,
+        date: '28 Sep 2026',
+        comment: 'Kerja sama bareng Mas Alif sangat memuaskan! Logo dan brand guideline-nya rapi banget dan langsung siap pakai untuk packaging produk kopi kami.',
+        clientType: 'Owner Coffee Shop'
+      },
+      {
+        id: 'rev-alif-2',
+        author: 'Kevin Sanjaya',
+        rating: 5,
+        date: '15 Sep 2026',
+        comment: 'Website landing page yang dibuat Mas Alif super cepat loading-nya dan conversion rate naik pesat. Komunikasi via WA sangat responsif.',
+        clientType: 'Tech Startup Founder'
+      }
+    ],
+    verified: true,
+    featured: true,
+    status: 'active',
+    submittedAt: '2026-10-01',
+    whatsappClicks: 142,
+    viewsCount: 1280,
+    editPin: '1234'
+  },
+  {
     id: 'wk-1',
     name: 'Rafi Kurniawan',
     businessName: 'Lensa Visual Studio',
@@ -1275,88 +1388,56 @@ export const INITIAL_PROFILES: WorkerProfile[] = [
 
 export const INITIAL_PENDING_PROFILES: WorkerProfile[] = [
   {
-    id: 'submit-alif-murti-1',
-    name: 'Muhammad Alif Murti',
-    businessName: 'Murti Creative & Digital Studio',
-    title: 'Creative Designer, Branding Specialist & Web Developer',
-    category: 'desain',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
-    bio: 'Spesialis desain identitas visual, branding UMKM/korporat, UI/UX website, dan digital creative direction. Berpengalaman mengerjakan berbagai proyek portofolio komersial dengan pendekatan modern, tepat waktu, dan hasil berstandar profesional.',
-    city: 'Jakarta Timur',
-    fullAddress: 'Jl. Pemuda No. 28, Rawamangun, Jakarta Timur 13220',
-    whatsapp: '6281234567890',
-    instagram: '@alifmurti_28',
+    id: 'submit-starlight-audio',
+    name: 'Bintang Pratama Sound',
+    businessName: 'Starlight Audio & Event Production',
+    title: 'Sound Engineer & Acoustic Consultant',
+    category: 'musik',
+    avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80',
+    bio: 'Menyediakan tata suara profesional untuk live concert, podcast recording studio, dan instalasi akustik ruangan bergaransi.',
+    city: 'Jakarta Selatan',
+    fullAddress: 'Jl. Fatmawati Raya No. 88, Cilandak, Jakarta Selatan 12430',
+    whatsapp: '6281311223344',
+    instagram: '@starlight_audio',
     portfolioUrl: 'https://instagram.com/alifmurti_28',
-    startingPrice: 350000,
-    priceUnit: 'proyek / paket',
+    startingPrice: 500000,
+    priceUnit: 'sesi',
     pricePackages: [
       {
-        id: 'pkg-alif-1',
-        name: 'Starter Logo & Visual Identity',
-        price: 350000,
-        unit: 'paket desain',
-        description: 'Desain logo profesional modern + panduan warna dan tipografi.',
+        id: 'pkg-bintang-1',
+        name: 'Paket Sound System Intimate Event',
+        price: 500000,
+        unit: 'sesi (4 jam)',
+        description: 'Sound system lengkap untuk kapasitas hingga 100 orang.',
         features: [
-          '2 Pilihan konsep logo modern',
-          'File master vector (AI, EPS, PDF)',
-          'High-res PNG transparan & JPEG',
-          'Revisi minor hingga 3x',
-          'Panduan color palette & typography'
+          '2 Speaker Active 15 inch',
+          'Mixer Digital 16 Channel',
+          '2 Wireless Microphone',
+          '1 Sound Operator on-site'
         ]
       },
       {
-        id: 'pkg-alif-2',
-        name: 'Full Brand Guideline & Social Media Kit',
-        price: 850000,
-        unit: 'paket lengkap',
-        description: 'Paket komplit identitas brand untuk bisnis yang siap scale-up.',
+        id: 'pkg-bintang-2',
+        name: 'Full Concert & Wedding Audio Set',
+        price: 1800000,
+        unit: 'hari',
+        description: 'Setup audio skala menengah hingga besar dengan sub-woofer dan monitor panggung.',
         features: [
-          'Semua fitur paket Starter',
-          'Template feed & story Instagram (6 desain)',
-          'Desain kartu nama & kop surat',
-          'Dokumen Brand Book / Guideline PDF',
-          'Konsultasi arah visual brand'
+          '4 Line Array Speaker + 2 Subwoofer',
+          'Digital Stagebox & Mixer 32 Channel',
+          '4 Wireless Mic + In-Ear Monitor',
+          'Crew & Sound Engineer Standby'
         ],
         popular: true
-      },
-      {
-        id: 'pkg-alif-3',
-        name: 'Custom Web & Interactive Design',
-        price: 2500000,
-        unit: 'per website',
-        description: 'Pembuatan landing page atau company profile modern berkecepatan tinggi.',
-        features: [
-          'Desain responsif mobile & desktop',
-          'Integrasi tombol WhatsApp & formulir interaktif',
-          'Optimasi SEO & kecepatan load maksimal',
-          'Free domain & hosting setup'
-        ]
       }
     ],
     workOutputs: [
       {
-        id: 'wo-alif-pdf-1',
-        type: 'pdf',
-        url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
-        title: 'Portofolio_Karya_Alif_Murti_2026.pdf',
-        description: 'Dokumen Portofolio Resmi & Company Profile (1.2 MB)',
-        fileName: 'Portofolio_Karya_Alif_Murti_2026.pdf',
-        fileSize: '1.2 MB'
-      },
-      {
-        id: 'wo-alif-img-1',
+        id: 'wo-sound-1',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
-        title: 'Brand Identity & Visual System Showcases',
-        description: 'Koleksi identitas visual dan portofolio desain proyek komersial.'
-      },
-      {
-        id: 'wo-alif-img-2',
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=800&q=80',
-        title: 'Social Media Kit & Typography Guidelines',
-        description: 'Template feed dan sistem tata letak grafis terpadu.'
+        url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80',
+        title: 'Stage Audio Setup at Java Jazz Festival'
       }
     ],
     rating: 5.0,
@@ -1367,7 +1448,8 @@ export const INITIAL_PENDING_PROFILES: WorkerProfile[] = [
     status: 'pending',
     submittedAt: '2026-10-03',
     whatsappClicks: 0,
-    viewsCount: 0
+    viewsCount: 0,
+    editPin: '1234'
   }
 ];
 
