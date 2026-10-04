@@ -5,6 +5,7 @@ import { BrandLogo } from './BrandLogo';
 interface NavbarProps {
   onOpenSubmitModal: () => void;
   onOpenAdminModal: () => void;
+  onOpenPartnerLookupEdit: () => void;
   isAdmin: boolean;
   favoritesCount: number;
   onToggleFavoritesView: () => void;
@@ -15,6 +16,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenSubmitModal,
   onOpenAdminModal,
+  onOpenPartnerLookupEdit,
   isAdmin,
   favoritesCount,
   onToggleFavoritesView,
@@ -63,6 +65,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {favoritesCount}
               </span>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={onOpenPartnerLookupEdit}
+            style={{ marginRight: '10px' }}
+            className="hover:text-[#6B4EFE] transition-colors relative py-1 hover:underline underline-offset-4 decoration-2 cursor-pointer"
+          >
+            Edit Profil Mitra
           </button>
           <a 
             href="#kontak-admin" 

@@ -20,6 +20,9 @@ import { AdminModal } from './components/AdminModal';
 import { HowItWorks } from './components/HowItWorks';
 import { Footer } from './components/Footer';
 import { LightboxModal } from './components/LightboxModal';
+import { EditPartnerProfileModal } from './components/EditPartnerProfileModal';
+import { PartnerAuthGateModal } from './components/PartnerAuthGateModal';
+import { PartnerLookupEditModal } from './components/PartnerLookupEditModal';
 
 import { Search, Heart, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
 
@@ -47,6 +50,11 @@ export default function App() {
     url: '',
     title: ''
   });
+
+  // Partner Self-Editing States
+  const [isPartnerLookupOpen, setIsPartnerLookupOpen] = useState(false);
+  const [partnerToVerifyPin, setPartnerToVerifyPin] = useState<WorkerProfile | null>(null);
+  const [partnerToEdit, setPartnerToEdit] = useState<WorkerProfile | null>(null);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -182,6 +190,32 @@ export default function App() {
     showToast('Data mitra berhasil diperbarui');
   };
 
+  // Partner Self-Edit Handlers
+  const handleStartEditPartner = (profile: WorkerProfile) => {
+    if (isAdmin) {
+      setPartnerToEdit(profile);
+    } else {
+      setPartnerToVerifyPin(profile);
+    }
+  };
+
+  const handlePinVerifiedSuccess = () => {
+    if (partnerToVerifyPin) {
+      setPartnerToEdit(partnerToVerifyPin);
+      setPartnerToVerifyPin(null);
+    }
+  };
+
+  const handleSaveEditedPartner = (updated: WorkerProfile) => {
+    updateActiveProfile(updated);
+    const refreshed = getActiveProfiles();
+    setActiveProfiles(refreshed);
+    if (selectedProfileModal && selectedProfileModal.id === updated.id) {
+      setSelectedProfileModal(updated);
+    }
+    showToast(`Profil ${updated.name} berhasil diperbarui!`);
+  };
+
   const handleAddNewManual = (profileData: any) => {
     addActiveProfile(profileData);
     setActiveProfiles(getActiveProfiles());
@@ -282,6 +316,7 @@ export default function App() {
       <Navbar
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
         onOpenAdminModal={() => setIsAdminModalOpen(true)}
+        onOpenPartnerLookupEdit={() => setIsPartnerLookupOpen(true)}
         isAdmin={isAdmin}
         favoritesCount={favorites.length}
         onToggleFavoritesView={() => setShowingFavoritesOnly(!showingFavoritesOnly)}
@@ -432,6 +467,7 @@ export default function App() {
           setLightboxData({ isOpen: true, url, title })
         }
         onAddReview={handleAddReview}
+        onOpenEditPartner={handleStartEditPartner}
       />
 
       {/* Modal: Public Profile Submission */}
@@ -456,6 +492,35 @@ export default function App() {
         onUpdateActive={handleUpdateActive}
         onAddNewManual={handleAddNewManual}
         onResetDefaults={handleResetDefaults}
+      />
+
+      {/* Modal: Partner Lookup & PIN Verification to Edit */}
+      <PartnerLookupEditModal
+        isOpen={isPartnerLookupOpen}
+        onClose={() => setIsPartnerLookupOpen(false)}
+        activeProfiles={activeProfiles}
+        onSelectProfileToEdit={(profile) => {
+          setPartnerToEdit(profile);
+        }}
+        isAdmin={isAdmin}
+      />
+
+      {/* Modal: Single Profile PIN Verification Gate */}
+      <PartnerAuthGateModal
+        isOpen={!!partnerToVerifyPin}
+        profile={partnerToVerifyPin}
+        onClose={() => setPartnerToVerifyPin(null)}
+        onSuccess={handlePinVerifiedSuccess}
+        isAdmin={isAdmin}
+      />
+
+      {/* Modal: Full Access Edit Partner Profile Modal */}
+      <EditPartnerProfileModal
+        isOpen={!!partnerToEdit}
+        profile={partnerToEdit}
+        onClose={() => setPartnerToEdit(null)}
+        onSave={handleSaveEditedPartner}
+        isAdmin={isAdmin}
       />
 
       {/* Modal: Lightbox Image Viewer */}

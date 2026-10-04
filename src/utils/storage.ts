@@ -1,8 +1,9 @@
 import { WorkerProfile, Review } from '../types';
-import { INITIAL_PROFILES } from '../data/initialData';
+import { INITIAL_PROFILES, INITIAL_PENDING_PROFILES } from '../data/initialData';
 
 const STORAGE_KEY_PROFILES = 'titiktemu_active_profiles_v1';
 const STORAGE_KEY_PENDING = 'titiktemu_pending_profiles_v1';
+const STORAGE_KEY_PROCESSED_PENDING = 'titiktemu_processed_pending_v1';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
 
@@ -57,6 +58,19 @@ export function saveActiveProfiles(profiles: WorkerProfile[]): void {
 // In-memory fallback and cache to ensure submissions are NEVER lost due to localStorage quota
 let memoryPendingCache: WorkerProfile[] | null = null;
 
+function markPendingProcessed(id: string) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PROCESSED_PENDING);
+    const list: string[] = raw ? JSON.parse(raw) : [];
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(STORAGE_KEY_PROCESSED_PENDING, JSON.stringify(list));
+    }
+  } catch (e) {
+    console.warn('Error saving processed pending id', e);
+  }
+}
+
 export function getPendingProfiles(): WorkerProfile[] {
   let fromStorage: WorkerProfile[] = [];
   try {
@@ -68,15 +82,38 @@ export function getPendingProfiles(): WorkerProfile[] {
     console.warn('Error loading pending profiles from localStorage', e);
   }
 
-  if (memoryPendingCache) {
-    const mergedMap = new Map<string, WorkerProfile>();
-    fromStorage.forEach(p => mergedMap.set(p.id, p));
-    memoryPendingCache.forEach(p => mergedMap.set(p.id, p));
-    return Array.from(mergedMap.values());
+  let processedIds: string[] = [];
+  try {
+    const rawProcessed = localStorage.getItem(STORAGE_KEY_PROCESSED_PENDING);
+    if (rawProcessed) processedIds = JSON.parse(rawProcessed);
+  } catch (e) {
+    console.warn('Error loading processed IDs', e);
   }
 
-  memoryPendingCache = fromStorage;
-  return fromStorage;
+  const mergedMap = new Map<string, WorkerProfile>();
+
+  // Ensure default pending submissions (like Muhammad Alif Murti) are displayed unless already approved/rejected
+  INITIAL_PENDING_PROFILES.forEach((p) => {
+    if (!processedIds.includes(p.id)) {
+      mergedMap.set(p.id, p);
+    }
+  });
+
+  fromStorage.forEach((p) => {
+    if (!processedIds.includes(p.id)) {
+      mergedMap.set(p.id, p);
+    }
+  });
+
+  if (memoryPendingCache) {
+    memoryPendingCache.forEach((p) => {
+      if (!processedIds.includes(p.id)) {
+        mergedMap.set(p.id, p);
+      }
+    });
+  }
+
+  return Array.from(mergedMap.values());
 }
 
 export function savePendingProfiles(profiles: WorkerProfile[]): void {
@@ -127,6 +164,7 @@ export function submitNewPendingProfile(profileData: Omit<WorkerProfile, 'id' | 
 }
 
 export function approvePendingProfile(profileId: string): void {
+  markPendingProcessed(profileId);
   const pending = getPendingProfiles();
   const target = pending.find(p => p.id === profileId);
   if (!target) return;
@@ -144,6 +182,7 @@ export function approvePendingProfile(profileId: string): void {
 }
 
 export function rejectPendingProfile(profileId: string): void {
+  markPendingProcessed(profileId);
   const pending = getPendingProfiles();
   const updatedPending = pending.filter(p => p.id !== profileId);
   savePendingProfiles(updatedPending);

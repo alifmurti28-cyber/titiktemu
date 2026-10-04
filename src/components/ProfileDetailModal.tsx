@@ -4,7 +4,7 @@ import { formatRupiah } from '../utils/storage';
 import { 
   X, Star, MapPin, CheckCircle2, MessageCircle, 
   ExternalLink, Copy, Check, Share2, 
-  Sparkles, Camera, Image as ImageIcon, Send, FileText, Download 
+  Sparkles, Camera, Image as ImageIcon, Send, FileText, Download, Edit3 
 } from 'lucide-react';
 
 interface ProfileDetailModalProps {
@@ -13,6 +13,7 @@ interface ProfileDetailModalProps {
   onWhatsAppClick: (profile: WorkerProfile, selectedPackage?: PricePackage) => void;
   onOpenLightbox: (imageUrl: string, title: string) => void;
   onAddReview: (profileId: string, review: { author: string; rating: number; comment: string; clientType?: string }) => void;
+  onOpenEditPartner?: (profile: WorkerProfile) => void;
 }
 
 export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
@@ -20,7 +21,8 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   onClose,
   onWhatsAppClick,
   onOpenLightbox,
-  onAddReview
+  onAddReview,
+  onOpenEditPartner
 }) => {
   if (!profile) return null;
 
@@ -110,6 +112,18 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               {copiedShare ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Share2 className="h-3.5 w-3.5" />}
               <span>{copiedShare ? 'Tersalin' : 'Bagikan'}</span>
             </button>
+
+            {onOpenEditPartner && (
+              <button
+                type="button"
+                onClick={() => onOpenEditPartner(profile)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#FFD166] px-2.5 py-1 text-xs font-black text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] hover:bg-white transition-colors cursor-pointer"
+                title="Perbarui paket atau portofolio profil ini"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Edit Profil</span>
+              </button>
+            )}
           </div>
 
           {/* Profile Identity Overlay */}

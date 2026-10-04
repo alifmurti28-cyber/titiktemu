@@ -3,7 +3,7 @@ import { CategoryId, PricePackage, WorkOutput } from '../types';
 import { CATEGORIES, DEFAULT_CITIES } from '../data/initialData';
 import { 
   X, Sparkles, Upload, Plus, Trash2, CheckCircle2, 
-  AlertCircle, DollarSign, MessageCircle, FileText 
+  AlertCircle, DollarSign, MessageCircle, FileText, Lock 
 } from 'lucide-react';
 
 interface SubmitProfileModalProps {
@@ -160,6 +160,8 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
     setWorkOutputs(workOutputs.filter((w) => w.id !== woId));
   };
 
+  const [editPin, setEditPin] = useState('');
+  const [savedPin, setSavedPin] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -167,6 +169,9 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
 
     const resolvedCategory = category === 'lainnya' ? (customCategory.trim() || 'Lainnya') : category;
     const resolvedCity = cityOption === 'lainnya' ? (customCity.trim() || 'Lainnya') : cityOption;
+
+    const finalPin = editPin.trim() || whatsapp.trim().replace(/\D/g, '').slice(-4) || '1234';
+    setSavedPin(finalPin);
 
     const payload = {
       name: name.trim(),
@@ -184,6 +189,7 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
       priceUnit: priceUnit.trim(),
       pricePackages: packages,
       workOutputs,
+      editPin: finalPin,
       verified: false,
       featured: false
     };
@@ -237,6 +243,23 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
               <p className="text-sm text-[#1A1A1A]/80 font-medium leading-relaxed">
                 Profil dan price list usaha Anda telah masuk ke sistem antrean <strong>Titik Temu</strong>. Tim kurator/admin kami akan meninjau kontak sebelum profil Anda tampil publik.
               </p>
+
+              {/* Security PIN Reminder */}
+              <div className="rounded-2xl border-2 border-[#1A1A1A] bg-[#6B4EFE]/10 p-4 text-xs text-[#1A1A1A] font-bold text-left space-y-1">
+                <div className="flex items-center gap-1.5 text-[#6B4EFE]">
+                  <Lock className="h-4 w-4" />
+                  <span className="font-black">PIN Keamanan Edit Profil Anda:</span>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="font-mono text-base font-black bg-white px-3 py-1 rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
+                    {savedPin}
+                  </span>
+                  <span className="text-[11px] text-[#1A1A1A]/70 font-medium">
+                    (Simpan PIN ini untuk mengedit paket, kontak, & portofolio Anda di kemudian hari)
+                  </span>
+                </div>
+              </div>
+
               <div className="rounded-2xl border-2 border-[#1A1A1A] bg-[#FFD166]/20 p-4 text-xs text-[#1A1A1A] font-medium text-left">
                 <strong>Tips Admin:</strong> Karena Anda menjalankan sistem ini, Anda dapat langsung menyetujui profil ini lewat tombol <strong>"Admin"</strong> di navbar atas.
               </div>
@@ -696,6 +719,34 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                       Tambah Link
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* SECTION 5: PIN Keamanan Edit Profil */}
+              <div className="space-y-3 p-4 rounded-2xl border-2 border-[#1A1A1A] bg-[#FFD166]/20 shadow-[2px_2px_0px_#1A1A1A]">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-[#1A1A1A]" />
+                  <h3 className="font-heading text-sm font-black text-[#1A1A1A]">
+                    5. PIN Keamanan Edit Profil (4-6 Digit Angka)
+                  </h3>
+                </div>
+                <p className="text-xs text-[#1A1A1A]/80 font-medium leading-relaxed">
+                  PIN rahasia ini digunakan jika sewaktu-waktu Anda ingin mengedit tarif, menambah portofolio, atau mengubah nomor WhatsApp agar profil Anda <strong>tidak bisa diubah atau diganggu oleh mitra lain</strong>.
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <input
+                    type="password"
+                    maxLength={6}
+                    value={editPin}
+                    onChange={(e) => setEditPin(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Contoh: 1234 atau 4-6 angka rahasia"
+                    className="w-full sm:w-64 rounded-xl bg-white px-3 py-2 text-xs font-mono font-bold text-[#1A1A1A] border-2 border-[#1A1A1A] outline-none tracking-widest"
+                  />
+                  <span className="text-[11px] text-[#1A1A1A]/60 font-bold">
+                    {editPin.length > 0 
+                      ? `✓ ${editPin.length} digit terisi` 
+                      : '(Opsional: jika dikosongkan, default adalah 4 digit terakhir nomor WhatsApp Anda)'}
+                  </span>
                 </div>
               </div>
 

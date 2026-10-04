@@ -1272,3 +1272,102 @@ export const INITIAL_PROFILES: WorkerProfile[] = [
     viewsCount: 1420
   }
 ];
+
+export const INITIAL_PENDING_PROFILES: WorkerProfile[] = [
+  {
+    id: 'submit-alif-murti-1',
+    name: 'Muhammad Alif Murti',
+    businessName: 'Murti Creative & Digital Studio',
+    title: 'Creative Designer, Branding Specialist & Web Developer',
+    category: 'desain',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+    bio: 'Spesialis desain identitas visual, branding UMKM/korporat, UI/UX website, dan digital creative direction. Berpengalaman mengerjakan berbagai proyek portofolio komersial dengan pendekatan modern, tepat waktu, dan hasil berstandar profesional.',
+    city: 'Jakarta Timur',
+    fullAddress: 'Jl. Pemuda No. 28, Rawamangun, Jakarta Timur 13220',
+    whatsapp: '6281234567890',
+    instagram: '@alifmurti_28',
+    portfolioUrl: 'https://instagram.com/alifmurti_28',
+    startingPrice: 350000,
+    priceUnit: 'proyek / paket',
+    pricePackages: [
+      {
+        id: 'pkg-alif-1',
+        name: 'Starter Logo & Visual Identity',
+        price: 350000,
+        unit: 'paket desain',
+        description: 'Desain logo profesional modern + panduan warna dan tipografi.',
+        features: [
+          '2 Pilihan konsep logo modern',
+          'File master vector (AI, EPS, PDF)',
+          'High-res PNG transparan & JPEG',
+          'Revisi minor hingga 3x',
+          'Panduan color palette & typography'
+        ]
+      },
+      {
+        id: 'pkg-alif-2',
+        name: 'Full Brand Guideline & Social Media Kit',
+        price: 850000,
+        unit: 'paket lengkap',
+        description: 'Paket komplit identitas brand untuk bisnis yang siap scale-up.',
+        features: [
+          'Semua fitur paket Starter',
+          'Template feed & story Instagram (6 desain)',
+          'Desain kartu nama & kop surat',
+          'Dokumen Brand Book / Guideline PDF',
+          'Konsultasi arah visual brand'
+        ],
+        popular: true
+      },
+      {
+        id: 'pkg-alif-3',
+        name: 'Custom Web & Interactive Design',
+        price: 2500000,
+        unit: 'per website',
+        description: 'Pembuatan landing page atau company profile modern berkecepatan tinggi.',
+        features: [
+          'Desain responsif mobile & desktop',
+          'Integrasi tombol WhatsApp & formulir interaktif',
+          'Optimasi SEO & kecepatan load maksimal',
+          'Free domain & hosting setup'
+        ]
+      }
+    ],
+    workOutputs: [
+      {
+        id: 'wo-alif-pdf-1',
+        type: 'pdf',
+        url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf',
+        title: 'Portofolio_Karya_Alif_Murti_2026.pdf',
+        description: 'Dokumen Portofolio Resmi & Company Profile (1.2 MB)',
+        fileName: 'Portofolio_Karya_Alif_Murti_2026.pdf',
+        fileSize: '1.2 MB'
+      },
+      {
+        id: 'wo-alif-img-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+        title: 'Brand Identity & Visual System Showcases',
+        description: 'Koleksi identitas visual dan portofolio desain proyek komersial.'
+      },
+      {
+        id: 'wo-alif-img-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=800&q=80',
+        title: 'Social Media Kit & Typography Guidelines',
+        description: 'Template feed dan sistem tata letak grafis terpadu.'
+      }
+    ],
+    rating: 5.0,
+    reviewCount: 0,
+    reviews: [],
+    verified: false,
+    featured: false,
+    status: 'pending',
+    submittedAt: '2026-10-03',
+    whatsappClicks: 0,
+    viewsCount: 0
+  }
+];
+

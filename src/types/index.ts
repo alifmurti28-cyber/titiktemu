@@ -83,4 +83,5 @@ export interface WorkerProfile {
   submittedAt: string;
   whatsappClicks: number;
   viewsCount: number;
+  editPin?: string;
 }
