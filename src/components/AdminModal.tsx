@@ -5,7 +5,7 @@ import { formatRupiah } from '../utils/storage';
 import { 
   X, Lock, ShieldCheck, CheckCircle2, XCircle, 
   Trash2, Edit3, Plus, Download, Upload, RefreshCw, 
-  LogOut, Eye, MessageCircle, AlertTriangle, Check, FileText 
+  LogOut, Eye, MessageCircle, AlertTriangle, Check, FileText, RotateCcw, Undo2 
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -16,12 +16,16 @@ interface AdminModalProps {
   onLogout: () => void;
   pendingProfiles: WorkerProfile[];
   activeProfiles: WorkerProfile[];
+  trashProfiles?: WorkerProfile[];
   onApprovePending: (id: string) => void;
   onRejectPending: (id: string) => void;
   onDeleteActive: (id: string) => void;
   onUpdateActive: (profile: WorkerProfile) => void;
   onAddNewManual: (profileData: any) => void;
   onResetDefaults: () => void;
+  onRestoreFromTrash?: (id: string, directPublish?: boolean) => void;
+  onDeletePermanentFromTrash?: (id: string) => void;
+  onEmptyTrash?: () => void;
 }
 
 export const AdminModal: React.FC<AdminModalProps> = ({
@@ -32,12 +36,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onLogout,
   pendingProfiles,
   activeProfiles,
+  trashProfiles = [],
   onApprovePending,
   onRejectPending,
   onDeleteActive,
   onUpdateActive,
   onAddNewManual,
-  onResetDefaults
+  onResetDefaults,
+  onRestoreFromTrash,
+  onDeletePermanentFromTrash,
+  onEmptyTrash
 }) => {
   if (!isOpen) return null;
 
@@ -47,7 +55,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [loginError, setLoginError] = useState('');
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState<'pending' | 'active' | 'stats'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'active' | 'stats' | 'trash'>('pending');
   const [searchFilter, setSearchFilter] = useState('');
 
   // Editing state
@@ -330,6 +338,24 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 >
                   Statistik & Pengaturan
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('trash')}
+                  className={`flex items-center gap-1.5 pb-1 text-xs sm:text-sm font-extrabold border-b-3 transition-all cursor-pointer ${
+                    activeTab === 'trash'
+                      ? 'border-[#FF5A5F] text-[#FF5A5F]'
+                      : 'border-transparent text-[#1A1A1A]/60 hover:text-[#1A1A1A]'
+                  }`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Kotak Sampah & Ditolak</span>
+                  {trashProfiles.length > 0 && (
+                    <span className="rounded-full bg-[#FF5A5F] px-2 py-0.2 text-[10px] font-black text-white border border-[#1A1A1A]">
+                      {trashProfiles.length}
+                    </span>
+                  )}
+                </button>
               </div>
 
               {activeTab === 'active' && (
@@ -340,6 +366,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Tambah Mitra Manual</span>
+                </button>
+              )}
+
+              {activeTab === 'trash' && trashProfiles.length > 0 && onEmptyTrash && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Apakah Anda yakin ingin mengosongkan seluruh kotak sampah secara permanen?')) {
+                      onEmptyTrash();
+                    }
+                  }}
+                  className="brutal-btn hidden sm:flex items-center gap-1.5 bg-rose-50 text-[#FF5A5F] border-2 border-[#FF5A5F] px-3 py-1.5 text-xs font-black cursor-pointer hover:bg-[#FF5A5F] hover:text-white transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Kosongkan Sampah</span>
                 </button>
               )}
             </div>
@@ -635,6 +676,125 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* TAB 4: TRASH & REJECTED PROFILES */}
+              {activeTab === 'trash' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 className="font-heading text-base font-black text-[#1A1A1A]">
+                        Kotak Sampah: Arsip Pengajuan Ditolak & Mitra Dihapus
+                      </h3>
+                      <p className="text-xs text-[#1A1A1A]/70 font-medium">
+                        Daftar profil yang pernah ditolak atau dihapus. Anda dapat memulihkannya kembali ke status aktif atau antrean kapan saja.
+                      </p>
+                    </div>
+                  </div>
+
+                  {trashProfiles.length === 0 ? (
+                    <div className="rounded-2xl border-2 border-dashed border-[#1A1A1A]/30 p-12 text-center text-[#1A1A1A]/60 bg-white space-y-2">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-[#1A1A1A]/40 border-2 border-[#1A1A1A]/20">
+                        <Trash2 className="h-6 w-6" />
+                      </div>
+                      <h4 className="font-heading font-black text-sm text-[#1A1A1A]">Kotak Sampah Kosong</h4>
+                      <p className="text-xs font-medium">Tidak ada pengajuan yang ditolak atau mitra yang dihapus saat ini.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {trashProfiles.map((p) => (
+                        <div
+                          key={p.id}
+                          className="brutal-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border-2 border-[#1A1A1A]"
+                        >
+                          <div className="flex items-start gap-3.5">
+                            <img
+                              src={p.avatar}
+                              alt={p.name}
+                              className="h-12 w-12 rounded-xl object-cover border-2 border-[#1A1A1A] shrink-0 grayscale opacity-80"
+                            />
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-heading font-black text-sm text-[#1A1A1A]">{p.name}</h4>
+                                <span className="rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-black text-[#FF5A5F] border border-[#FF5A5F]/40">
+                                  Ditolak / Dihapus
+                                </span>
+                                <span className="rounded-md bg-[#FFD166]/50 px-2 py-0.5 text-[10px] uppercase font-black text-[#1A1A1A] border border-[#1A1A1A]/30">
+                                  {p.category}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[#1A1A1A]/80 font-medium">{p.title}</p>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-[#1A1A1A]/60 font-bold">
+                                <span>Kota: {p.city}</span>
+                                <span>·</span>
+                                <span>WA: {p.whatsapp}</span>
+                                <span>·</span>
+                                <span>Mulai {formatRupiah(p.startingPrice)} /{p.priceUnit}</span>
+                              </div>
+
+                              {/* Portofolio & PDF Badges */}
+                              {p.workOutputs && p.workOutputs.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                  {p.workOutputs.some(w => w.type === 'pdf' || w.url?.startsWith('data:application/pdf') || w.fileName?.endsWith('.pdf')) && (
+                                    <span className="rounded-md bg-rose-50 border border-[#FF5A5F]/30 px-1.5 py-0.5 text-[10px] font-bold text-[#FF5A5F] flex items-center gap-1">
+                                      <FileText className="h-3 w-3" />
+                                      <span>Lampiran PDF</span>
+                                    </span>
+                                  )}
+                                  <span className="rounded-md bg-neutral-100 border border-[#1A1A1A]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#1A1A1A]/70">
+                                    {p.pricePackages?.length || 0} Paket Layanan
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Restore & Permanent Delete Actions */}
+                          <div className="flex flex-wrap items-center gap-2 shrink-0">
+                            {onRestoreFromTrash && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => onRestoreFromTrash(p.id, false)}
+                                  className="brutal-btn flex items-center gap-1.5 bg-white text-[#1A1A1A] px-3 py-2 text-xs font-bold cursor-pointer hover:bg-neutral-50"
+                                  title="Kembalikan ke antrean pengajuan baru"
+                                >
+                                  <Undo2 className="h-3.5 w-3.5 text-[#6B4EFE]" />
+                                  <span>Ke Antrean</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => onRestoreFromTrash(p.id, true)}
+                                  className="brutal-btn flex items-center gap-1.5 bg-[#6B4EFE] text-white px-3.5 py-2 text-xs font-black cursor-pointer hover:bg-[#583bd8]"
+                                  title="Pulihkan dan langsung berikan akses publik (mitra aktif)"
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-[#FFD166]" />
+                                  <span>Pulihkan & Beri Akses</span>
+                                </button>
+                              </>
+                            )}
+
+                            {onDeletePermanentFromTrash && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Hapus permanen profil "${p.name}"? Data ini tidak dapat dipulihkan lagi.`)) {
+                                    onDeletePermanentFromTrash(p.id);
+                                  }
+                                }}
+                                className="brutal-btn p-2 bg-white text-[#FF5A5F] hover:bg-[#FF5A5F] hover:text-white transition-colors cursor-pointer"
+                                title="Hapus Permanen dari Kotak Sampah"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

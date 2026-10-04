@@ -6,7 +6,8 @@ import {
   rejectPendingProfile, addActiveProfile, updateActiveProfile, 
   deleteActiveProfile, incrementWhatsappClick, incrementViewCount, 
   addReviewToProfile, getFavorites, toggleFavorite, 
-  isAdminLoggedIn, setAdminLogin, resetProfilesToDefault, formatRupiah 
+  isAdminLoggedIn, setAdminLogin, resetProfilesToDefault, formatRupiah,
+  getTrashProfiles, restoreProfileFromTrash, deletePermanentlyFromTrash, emptyTrash
 } from './utils/storage';
 import { DEFAULT_CITIES, INITIAL_PROFILES } from './data/initialData';
 
@@ -30,6 +31,7 @@ export default function App() {
   // Profiles data states
   const [activeProfiles, setActiveProfiles] = useState<WorkerProfile[]>([]);
   const [pendingProfiles, setPendingProfiles] = useState<WorkerProfile[]>([]);
+  const [trashProfiles, setTrashProfiles] = useState<WorkerProfile[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
@@ -68,6 +70,7 @@ export default function App() {
   useEffect(() => {
     setActiveProfiles(getActiveProfiles());
     setPendingProfiles(getPendingProfiles());
+    setTrashProfiles(getTrashProfiles());
     setFavorites(getFavorites());
     setIsAdmin(isAdminLoggedIn());
   }, []);
@@ -175,13 +178,35 @@ export default function App() {
   const handleRejectPending = (id: string) => {
     rejectPendingProfile(id);
     setPendingProfiles(getPendingProfiles());
-    showToast('Pengajuan telah ditolak');
+    setTrashProfiles(getTrashProfiles());
+    showToast('Pengajuan telah ditolak dan dipindahkan ke Kotak Sampah');
   };
 
   const handleDeleteActive = (id: string) => {
     deleteActiveProfile(id);
     setActiveProfiles(getActiveProfiles());
-    showToast('Profil mitra telah dihapus');
+    setTrashProfiles(getTrashProfiles());
+    showToast('Profil mitra telah dipindahkan ke Kotak Sampah');
+  };
+
+  const handleRestoreFromTrash = (id: string, directPublish: boolean = true) => {
+    restoreProfileFromTrash(id, directPublish);
+    setActiveProfiles(getActiveProfiles());
+    setPendingProfiles(getPendingProfiles());
+    setTrashProfiles(getTrashProfiles());
+    showToast(directPublish ? 'Mitra berhasil dipulihkan & langsung aktif di direktori!' : 'Mitra dikembalikan ke antrean pengajuan');
+  };
+
+  const handleDeletePermanentFromTrash = (id: string) => {
+    deletePermanentlyFromTrash(id);
+    setTrashProfiles(getTrashProfiles());
+    showToast('Profil telah dihapus permanen dari kotak sampah');
+  };
+
+  const handleEmptyTrash = () => {
+    emptyTrash();
+    setTrashProfiles([]);
+    showToast('Seluruh isi kotak sampah berhasil dibersihkan');
   };
 
   const handleUpdateActive = (profile: WorkerProfile) => {
@@ -486,12 +511,16 @@ export default function App() {
         onLogout={handleAdminLogout}
         pendingProfiles={pendingProfiles}
         activeProfiles={activeProfiles}
+        trashProfiles={trashProfiles}
         onApprovePending={handleApprovePending}
         onRejectPending={handleRejectPending}
         onDeleteActive={handleDeleteActive}
         onUpdateActive={handleUpdateActive}
         onAddNewManual={handleAddNewManual}
         onResetDefaults={handleResetDefaults}
+        onRestoreFromTrash={handleRestoreFromTrash}
+        onDeletePermanentFromTrash={handleDeletePermanentFromTrash}
+        onEmptyTrash={handleEmptyTrash}
       />
 
       {/* Modal: Partner Lookup & PIN Verification to Edit */}

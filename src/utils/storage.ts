@@ -4,6 +4,7 @@ import { INITIAL_PROFILES, INITIAL_PENDING_PROFILES } from '../data/initialData'
 const STORAGE_KEY_PROFILES = 'titiktemu_active_profiles_v1';
 const STORAGE_KEY_PENDING = 'titiktemu_pending_profiles_v1';
 const STORAGE_KEY_PROCESSED_PENDING = 'titiktemu_processed_pending_v1';
+const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v1';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
 
@@ -181,11 +182,78 @@ export function approvePendingProfile(profileId: string): void {
   saveActiveProfiles([activatedProfile, ...active]);
 }
 
+export function getTrashProfiles(): WorkerProfile[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TRASH);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.warn('Error loading trash profiles from localStorage', e);
+  }
+  return [];
+}
+
+export function saveTrashProfiles(profiles: WorkerProfile[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_TRASH, JSON.stringify(profiles));
+  } catch (e) {
+    console.warn('LocalStorage quota exceeded on trash profiles', e);
+  }
+}
+
+export function moveToTrash(profile: WorkerProfile): void {
+  const trash = getTrashProfiles();
+  const updated = [{ ...profile, status: 'rejected' as const }, ...trash.filter(p => p.id !== profile.id)];
+  saveTrashProfiles(updated);
+}
+
+export function restoreProfileFromTrash(profileId: string, directPublish: boolean = true): void {
+  const trash = getTrashProfiles();
+  const target = trash.find(p => p.id === profileId);
+  if (!target) return;
+
+  // Remove from trash
+  saveTrashProfiles(trash.filter(p => p.id !== profileId));
+
+  if (directPublish) {
+    const active = getActiveProfiles();
+    const restored: WorkerProfile = {
+      ...target,
+      status: 'active',
+      verified: true
+    };
+    saveActiveProfiles([restored, ...active.filter(p => p.id !== profileId)]);
+  } else {
+    const pending = getPendingProfiles();
+    const restored: WorkerProfile = {
+      ...target,
+      status: 'pending'
+    };
+    savePendingProfiles([restored, ...pending.filter(p => p.id !== profileId)]);
+  }
+}
+
+export function deletePermanentlyFromTrash(profileId: string): void {
+  const trash = getTrashProfiles();
+  saveTrashProfiles(trash.filter(p => p.id !== profileId));
+}
+
+export function emptyTrash(): void {
+  saveTrashProfiles([]);
+}
+
 export function rejectPendingProfile(profileId: string): void {
   markPendingProcessed(profileId);
   const pending = getPendingProfiles();
+  const target = pending.find(p => p.id === profileId);
   const updatedPending = pending.filter(p => p.id !== profileId);
   savePendingProfiles(updatedPending);
+
+  if (target) {
+    moveToTrash(target);
+  }
 }
 
 export function addActiveProfile(profileData: Omit<WorkerProfile, 'id' | 'status' | 'submittedAt' | 'whatsappClicks' | 'viewsCount'>): WorkerProfile {
@@ -214,8 +282,13 @@ export function updateActiveProfile(profile: WorkerProfile): void {
 
 export function deleteActiveProfile(profileId: string): void {
   const active = getActiveProfiles();
+  const target = active.find(p => p.id === profileId);
   const filtered = active.filter(p => p.id !== profileId);
   saveActiveProfiles(filtered);
+
+  if (target) {
+    moveToTrash(target);
+  }
 }
 
 export function incrementWhatsappClick(profileId: string): void {
