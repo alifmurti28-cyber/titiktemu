@@ -170,9 +170,16 @@ export default function App() {
 
   const handleApprovePending = (id: string) => {
     approvePendingProfile(id);
-    setActiveProfiles(getActiveProfiles());
-    setPendingProfiles(getPendingProfiles());
-    showToast('Profil mitra berhasil disetujui & live di direktori!');
+    const updatedActive = getActiveProfiles();
+    const updatedPending = getPendingProfiles();
+    setActiveProfiles(updatedActive);
+    setPendingProfiles(updatedPending);
+    // Reset search & category filters so the approved profile appears front and center
+    setSelectedCategory('all');
+    setSelectedCity('all');
+    setSearchQuery('');
+    setShowingFavoritesOnly(false);
+    showToast('Profil mitra berhasil disetujui & langsung tayang di direktori!');
   };
 
   const handleRejectPending = (id: string) => {

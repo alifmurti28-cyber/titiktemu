@@ -8,34 +8,47 @@ const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v2';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
 
+let memoryActiveCache: WorkerProfile[] | null = null;
+
 export function getActiveProfiles(): WorkerProfile[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_PROFILES);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(INITIAL_PROFILES));
-      return INITIAL_PROFILES;
-    }
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      // Check if new default profiles (like Muhammad Alif Murti) are missing in stored array
-      const existingIds = new Set(parsed.map((p: WorkerProfile) => p.id));
-      const missingInitial = INITIAL_PROFILES.filter((ip) => !existingIds.has(ip.id));
-      if (missingInitial.length > 0) {
-        // Prepend missing default profiles to the front
-        const merged = [...missingInitial, ...parsed];
-        localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(merged));
-        return merged;
+  let list = memoryActiveCache;
+  if (!list || list.length === 0) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_PROFILES);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          list = parsed;
+        }
       }
-      return parsed;
+    } catch (e) {
+      console.error('Error loading active profiles', e);
     }
-    return INITIAL_PROFILES;
-  } catch (e) {
-    console.error('Error loading active profiles', e);
-    return INITIAL_PROFILES;
   }
+
+  if (!list || list.length === 0) {
+    list = INITIAL_PROFILES;
+  }
+
+  // Check if new default profiles (like Muhammad Alif Murti) are missing in stored array
+  const existingIds = new Set(list.map((p: WorkerProfile) => p.id));
+  const missingInitial = INITIAL_PROFILES.filter((ip) => !existingIds.has(ip.id));
+  if (missingInitial.length > 0) {
+    list = [...missingInitial, ...list];
+  }
+
+  memoryActiveCache = list;
+  try {
+    localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(list));
+  } catch (e) {
+    // ignore
+  }
+
+  return list;
 }
 
 export function saveActiveProfiles(profiles: WorkerProfile[]): void {
+  memoryActiveCache = profiles;
   try {
     localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(profiles));
   } catch (e) {
@@ -70,6 +83,19 @@ function markPendingProcessed(id: string) {
     }
   } catch (e) {
     console.warn('Error saving processed pending id', e);
+  }
+}
+
+function unmarkPendingProcessed(id: string) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PROCESSED_PENDING);
+    if (raw) {
+      const list: string[] = JSON.parse(raw);
+      const filtered = list.filter(item => item !== id);
+      localStorage.setItem(STORAGE_KEY_PROCESSED_PENDING, JSON.stringify(filtered));
+    }
+  } catch (e) {
+    console.warn('Error unmarking processed pending id', e);
   }
 }
 
@@ -166,21 +192,27 @@ export function submitNewPendingProfile(profileData: Omit<WorkerProfile, 'id' | 
 }
 
 export function approvePendingProfile(profileId: string): void {
-  markPendingProcessed(profileId);
+  // 1. MUST FIND TARGET BEFORE MARKING PROCESSED!
   const pending = getPendingProfiles();
   const target = pending.find(p => p.id === profileId);
-  if (!target) return;
 
+  // 2. Now mark processed so it leaves the pending queue
+  markPendingProcessed(profileId);
+
+  // 3. Save remaining pending profiles
   const updatedPending = pending.filter(p => p.id !== profileId);
   savePendingProfiles(updatedPending);
 
-  const active = getActiveProfiles();
-  const activatedProfile: WorkerProfile = {
-    ...target,
-    status: 'active',
-    verified: true
-  };
-  saveActiveProfiles([activatedProfile, ...active]);
+  // 4. Activate target profile and prepend to active directory
+  if (target) {
+    const active = getActiveProfiles();
+    const activatedProfile: WorkerProfile = {
+      ...target,
+      status: 'active',
+      verified: true
+    };
+    saveActiveProfiles([activatedProfile, ...active.filter(p => p.id !== profileId)]);
+  }
 }
 
 export function getTrashProfiles(): WorkerProfile[] {
@@ -227,6 +259,7 @@ export function restoreProfileFromTrash(profileId: string, directPublish: boolea
     };
     saveActiveProfiles([restored, ...active.filter(p => p.id !== profileId)]);
   } else {
+    unmarkPendingProcessed(profileId);
     const pending = getPendingProfiles();
     const restored: WorkerProfile = {
       ...target,
@@ -246,12 +279,18 @@ export function emptyTrash(): void {
 }
 
 export function rejectPendingProfile(profileId: string): void {
-  markPendingProcessed(profileId);
+  // 1. MUST FIND TARGET BEFORE MARKING PROCESSED!
   const pending = getPendingProfiles();
   const target = pending.find(p => p.id === profileId);
+
+  // 2. Mark processed so it leaves the pending queue
+  markPendingProcessed(profileId);
+
+  // 3. Save remaining pending profiles
   const updatedPending = pending.filter(p => p.id !== profileId);
   savePendingProfiles(updatedPending);
 
+  // 4. Move target to trash
   if (target) {
     moveToTrash(target);
   }

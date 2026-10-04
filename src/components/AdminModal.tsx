@@ -486,10 +486,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
                             <button
                               type="button"
-                              onClick={() => onApprovePending(p.id)}
-                              className="brutal-btn flex items-center gap-1.5 bg-[#6B4EFE] px-4 py-2 text-xs font-black text-white cursor-pointer"
+                              onClick={() => {
+                                onApprovePending(p.id);
+                                setActiveTab('active');
+                              }}
+                              className="brutal-btn flex items-center gap-1.5 bg-[#6B4EFE] px-4 py-2 text-xs font-black text-white cursor-pointer hover:bg-[#583bd8]"
                             >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <CheckCircle2 className="h-3.5 w-3.5 text-[#FFD166]" />
                               <span>Setujui & Publikasikan</span>
                             </button>
                           </div>
