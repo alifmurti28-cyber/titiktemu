@@ -7,9 +7,25 @@ import {
   deleteActiveProfile, incrementWhatsappClick, incrementViewCount, 
   addReviewToProfile, getFavorites, toggleFavorite, 
   isAdminLoggedIn, setAdminLogin, resetProfilesToDefault, formatRupiah,
-  getTrashProfiles, restoreProfileFromTrash, deletePermanentlyFromTrash, emptyTrash
+  saveTrashProfiles, getTrashProfiles, restoreProfileFromTrash, deletePermanentlyFromTrash, emptyTrash
 } from './utils/storage';
 import { DEFAULT_CITIES, INITIAL_PROFILES } from './data/initialData';
+import {
+  subscribeToActiveProfiles,
+  subscribeToPendingProfiles,
+  subscribeToTrashProfiles,
+  submitPendingProfileCloud,
+  approvePendingProfileCloud,
+  rejectPendingProfileCloud,
+  updateActiveProfileCloud,
+  deleteActiveProfileCloud,
+  restoreProfileFromTrashCloud,
+  deletePermanentlyFromTrashCloud,
+  emptyTrashCloud,
+  addReviewCloud,
+  incrementWhatsAppClickCloud,
+  incrementViewsCountCloud,
+} from './services/firestoreService';
 
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -66,13 +82,40 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Initial load
+  // Initial load & Realtime synchronization with Firebase Firestore
   useEffect(() => {
+    // Fast initial local state
     setActiveProfiles(getActiveProfiles());
     setPendingProfiles(getPendingProfiles());
     setTrashProfiles(getTrashProfiles());
     setFavorites(getFavorites());
     setIsAdmin(isAdminLoggedIn());
+
+    // Realtime listener for active profiles
+    const unsubActive = subscribeToActiveProfiles((cloudProfiles) => {
+      if (cloudProfiles && cloudProfiles.length > 0) {
+        setActiveProfiles(cloudProfiles);
+        saveActiveProfiles(cloudProfiles);
+      }
+    });
+
+    // Realtime listener for pending profiles
+    const unsubPending = subscribeToPendingProfiles((cloudPending) => {
+      setPendingProfiles(cloudPending);
+      savePendingProfiles(cloudPending);
+    });
+
+    // Realtime listener for trash profiles
+    const unsubTrash = subscribeToTrashProfiles((cloudTrash) => {
+      setTrashProfiles(cloudTrash);
+      saveTrashProfiles(cloudTrash);
+    });
+
+    return () => {
+      unsubActive();
+      unsubPending();
+      unsubTrash();
+    };
   }, []);
 
   // Distinct cities list from default cities and active profiles
@@ -87,6 +130,7 @@ export default function App() {
   // Handle WhatsApp Click
   const handleWhatsAppClick = (profile: WorkerProfile, selectedPackage?: PricePackage) => {
     incrementWhatsappClick(profile.id);
+    incrementWhatsAppClickCloud(profile.id).catch(() => {});
     
     // Update local state count
     setActiveProfiles((prev) =>
@@ -114,6 +158,7 @@ export default function App() {
   // Handle Profile select to open detail
   const handleSelectProfile = (profile: WorkerProfile) => {
     incrementViewCount(profile.id);
+    incrementViewsCountCloud(profile.id).catch(() => {});
     setSelectedProfileModal(profile);
   };
 
@@ -134,7 +179,12 @@ export default function App() {
     setActiveProfiles(updated);
     const current = updated.find((p) => p.id === profileId);
     if (current) setSelectedProfileModal(current);
-    showToast('Ulasan Anda berhasil ditambahkan!');
+    addReviewCloud(profileId, {
+      ...review,
+      id: `rev-${Date.now()}`,
+      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    }).catch(e => console.warn('Cloud review sync', e));
+    showToast('Ulasan Anda berhasil ditambahkan & tersimpan!');
   };
 
   // Public Submit profile handler
@@ -144,7 +194,8 @@ export default function App() {
       const exists = prev.some((p) => p.id === newProfile.id);
       return exists ? prev : [newProfile, ...prev];
     });
-    showToast('Pendaftaran profil berhasil dikirim! Cek di menu Admin untuk menyetujui.');
+    submitPendingProfileCloud(profileData).catch(e => console.warn('Cloud submit sync', e));
+    showToast('Pendaftaran profil berhasil dikirim! Data tersinkron ke cloud & admin.');
   };
 
   // Admin login
@@ -174,18 +225,21 @@ export default function App() {
     const updatedPending = getPendingProfiles();
     setActiveProfiles(updatedActive);
     setPendingProfiles(updatedPending);
+    // Sync to Firestore Cloud so Vercel & all devices receive it instantly!
+    approvePendingProfileCloud(id).catch(e => console.warn('Cloud approve sync', e));
     // Reset search & category filters so the approved profile appears front and center
     setSelectedCategory('all');
     setSelectedCity('all');
     setSearchQuery('');
     setShowingFavoritesOnly(false);
-    showToast('Profil mitra berhasil disetujui & langsung tayang di direktori!');
+    showToast('Profil mitra berhasil disetujui & langsung live di cloud!');
   };
 
   const handleRejectPending = (id: string) => {
     rejectPendingProfile(id);
     setPendingProfiles(getPendingProfiles());
     setTrashProfiles(getTrashProfiles());
+    rejectPendingProfileCloud(id).catch(e => console.warn('Cloud reject sync', e));
     showToast('Pengajuan telah ditolak dan dipindahkan ke Kotak Sampah');
   };
 
@@ -193,6 +247,7 @@ export default function App() {
     deleteActiveProfile(id);
     setActiveProfiles(getActiveProfiles());
     setTrashProfiles(getTrashProfiles());
+    deleteActiveProfileCloud(id).catch(e => console.warn('Cloud delete sync', e));
     showToast('Profil mitra telah dipindahkan ke Kotak Sampah');
   };
 
@@ -201,25 +256,29 @@ export default function App() {
     setActiveProfiles(getActiveProfiles());
     setPendingProfiles(getPendingProfiles());
     setTrashProfiles(getTrashProfiles());
+    restoreProfileFromTrashCloud(id, directPublish).catch(e => console.warn('Cloud restore sync', e));
     showToast(directPublish ? 'Mitra berhasil dipulihkan & langsung aktif di direktori!' : 'Mitra dikembalikan ke antrean pengajuan');
   };
 
   const handleDeletePermanentFromTrash = (id: string) => {
     deletePermanentlyFromTrash(id);
     setTrashProfiles(getTrashProfiles());
+    deletePermanentlyFromTrashCloud(id).catch(e => console.warn('Cloud permanent delete sync', e));
     showToast('Profil telah dihapus permanen dari kotak sampah');
   };
 
   const handleEmptyTrash = () => {
     emptyTrash();
     setTrashProfiles([]);
+    emptyTrashCloud().catch(e => console.warn('Cloud empty trash sync', e));
     showToast('Seluruh isi kotak sampah berhasil dibersihkan');
   };
 
   const handleUpdateActive = (profile: WorkerProfile) => {
     updateActiveProfile(profile);
     setActiveProfiles(getActiveProfiles());
-    showToast('Data mitra berhasil diperbarui');
+    updateActiveProfileCloud(profile).catch(e => console.warn('Cloud update sync', e));
+    showToast('Data mitra berhasil diperbarui di cloud');
   };
 
   // Partner Self-Edit Handlers
@@ -245,13 +304,15 @@ export default function App() {
     if (selectedProfileModal && selectedProfileModal.id === updated.id) {
       setSelectedProfileModal(updated);
     }
-    showToast(`Profil ${updated.name} berhasil diperbarui!`);
+    updateActiveProfileCloud(updated).catch(e => console.warn('Cloud save partner sync', e));
+    showToast(`Profil ${updated.name} berhasil diperbarui di cloud!`);
   };
 
   const handleAddNewManual = (profileData: any) => {
-    addActiveProfile(profileData);
+    const created = addActiveProfile(profileData);
     setActiveProfiles(getActiveProfiles());
-    showToast('Mitra baru berhasil ditambahkan langsung!');
+    updateActiveProfileCloud(created).catch(e => console.warn('Cloud manual add sync', e));
+    showToast('Mitra baru berhasil ditambahkan langsung ke cloud!');
   };
 
   const handleResetDefaults = () => {

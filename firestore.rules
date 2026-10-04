@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    match /activeProfiles/{profileId} {
+      // Anyone can read active profiles (public marketplace directory)
+      allow read: if true;
+      // Allow creation, updates, and deletion for active profiles
+      allow create, update, delete: if isValidId(profileId);
+    }
+
+    match /pendingProfiles/{profileId} {
+      // Public registration & admin review
+      allow read, create, update, delete: if isValidId(profileId);
+    }
+
+    match /trashProfiles/{profileId} {
+      // Admin trash bin
+      allow read, create, update, delete: if isValidId(profileId);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

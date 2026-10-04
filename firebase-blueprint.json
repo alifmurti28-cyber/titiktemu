@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "WorkerProfile": {
+      "title": "WorkerProfile",
+      "description": "Profile data of a professional partner or applicant in TitikTemu",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "businessName": { "type": "string", "maxLength": 150 },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 50 },
+        "avatar": { "type": "string", "maxLength": 1000 },
+        "coverImage": { "type": "string", "maxLength": 1000 },
+        "bio": { "type": "string", "maxLength": 2000 },
+        "city": { "type": "string", "maxLength": 100 },
+        "fullAddress": { "type": "string", "maxLength": 300 },
+        "whatsapp": { "type": "string", "maxLength": 30 },
+        "instagram": { "type": "string", "maxLength": 100 },
+        "portfolioUrl": { "type": "string", "maxLength": 1000 },
+        "startingPrice": { "type": "number" },
+        "priceUnit": { "type": "string", "maxLength": 50 },
+        "pricePackages": { "type": "array" },
+        "workOutputs": { "type": "array" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "reviews": { "type": "array" },
+        "verified": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "pending", "rejected"] },
+        "submittedAt": { "type": "string", "maxLength": 50 },
+        "whatsappClicks": { "type": "number" },
+        "viewsCount": { "type": "number" },
+        "editPin": { "type": "string", "maxLength": 20 }
+      },
+      "required": ["id", "name", "title", "category", "city", "whatsapp", "status"]
+    }
+  },
+  "firestore": {
+    "/activeProfiles/{profileId}": {
+      "schema": "WorkerProfile",
+      "description": "Collection of active and published service provider profiles."
+    },
+    "/pendingProfiles/{profileId}": {
+      "schema": "WorkerProfile",
+      "description": "Public partner registration requests awaiting admin review."
+    },
+    "/trashProfiles/{profileId}": {
+      "schema": "WorkerProfile",
+      "description": "Rejected or trashed service provider profiles."
+    }
+  }
+}
