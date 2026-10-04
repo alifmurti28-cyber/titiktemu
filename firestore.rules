@@ -7,20 +7,22 @@ service cloud.firestore {
     }
 
     match /activeProfiles/{profileId} {
-      // Anyone can read active profiles (public marketplace directory)
+      // Anyone can read active profiles (both single doc and list query)
       allow read: if true;
-      // Allow creation, updates, and deletion for active profiles
-      allow create, update, delete: if isValidId(profileId);
+      // Allow write operations with valid ID
+      allow write: if isValidId(profileId);
     }
 
     match /pendingProfiles/{profileId} {
-      // Public registration & admin review
-      allow read, create, update, delete: if isValidId(profileId);
+      // Allow read (both single doc and list query)
+      allow read: if true;
+      allow write: if isValidId(profileId);
     }
 
     match /trashProfiles/{profileId} {
-      // Admin trash bin
-      allow read, create, update, delete: if isValidId(profileId);
+      // Allow read (both single doc and list query)
+      allow read: if true;
+      allow write: if isValidId(profileId);
     }
 
     match /{document=**} {

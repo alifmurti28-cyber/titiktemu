@@ -82,7 +82,7 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Initial load & Realtime synchronization with Firebase Firestore
+  // Initial load & Realtime synchronization with Firebase Firestore & Cross-Tab Sync
   useEffect(() => {
     // Fast initial local state
     setActiveProfiles(getActiveProfiles());
@@ -91,7 +91,21 @@ export default function App() {
     setFavorites(getFavorites());
     setIsAdmin(isAdminLoggedIn());
 
-    // Realtime listener for active profiles
+    // 1. Cross-Tab Immediate Sync for tabs on the same origin (e.g. Vercel Tab 1 <-> Tab 2)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.key || e.key.includes('active_profiles')) {
+        setActiveProfiles(getActiveProfiles());
+      }
+      if (!e.key || e.key.includes('pending_profiles')) {
+        setPendingProfiles(getPendingProfiles());
+      }
+      if (!e.key || e.key.includes('trash_profiles')) {
+        setTrashProfiles(getTrashProfiles());
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 2. Realtime listener for active profiles from Firestore
     const unsubActive = subscribeToActiveProfiles((cloudProfiles) => {
       if (cloudProfiles && cloudProfiles.length > 0) {
         setActiveProfiles(cloudProfiles);
@@ -99,19 +113,20 @@ export default function App() {
       }
     });
 
-    // Realtime listener for pending profiles
+    // 3. Realtime listener for pending profiles from Firestore
     const unsubPending = subscribeToPendingProfiles((cloudPending) => {
       setPendingProfiles(cloudPending);
       savePendingProfiles(cloudPending);
     });
 
-    // Realtime listener for trash profiles
+    // 4. Realtime listener for trash profiles from Firestore
     const unsubTrash = subscribeToTrashProfiles((cloudTrash) => {
       setTrashProfiles(cloudTrash);
       saveTrashProfiles(cloudTrash);
     });
 
     return () => {
+      window.removeEventListener('storage', handleStorageChange);
       unsubActive();
       unsubPending();
       unsubTrash();
@@ -220,13 +235,14 @@ export default function App() {
   };
 
   const handleApprovePending = (id: string) => {
+    const target = pendingProfiles.find(p => p.id === id) || getPendingProfiles().find(p => p.id === id);
     approvePendingProfile(id);
     const updatedActive = getActiveProfiles();
     const updatedPending = getPendingProfiles();
     setActiveProfiles(updatedActive);
     setPendingProfiles(updatedPending);
-    // Sync to Firestore Cloud so Vercel & all devices receive it instantly!
-    approvePendingProfileCloud(id).catch(e => console.warn('Cloud approve sync', e));
+    // Sync to Firestore Cloud with fallback profile object so cloud write NEVER fails!
+    approvePendingProfileCloud(id, target).catch(e => console.warn('Cloud approve sync', e));
     // Reset search & category filters so the approved profile appears front and center
     setSelectedCategory('all');
     setSelectedCity('all');
@@ -236,27 +252,30 @@ export default function App() {
   };
 
   const handleRejectPending = (id: string) => {
+    const target = pendingProfiles.find(p => p.id === id) || getPendingProfiles().find(p => p.id === id);
     rejectPendingProfile(id);
     setPendingProfiles(getPendingProfiles());
     setTrashProfiles(getTrashProfiles());
-    rejectPendingProfileCloud(id).catch(e => console.warn('Cloud reject sync', e));
+    rejectPendingProfileCloud(id, target).catch(e => console.warn('Cloud reject sync', e));
     showToast('Pengajuan telah ditolak dan dipindahkan ke Kotak Sampah');
   };
 
   const handleDeleteActive = (id: string) => {
+    const target = activeProfiles.find(p => p.id === id) || getActiveProfiles().find(p => p.id === id);
     deleteActiveProfile(id);
     setActiveProfiles(getActiveProfiles());
     setTrashProfiles(getTrashProfiles());
-    deleteActiveProfileCloud(id).catch(e => console.warn('Cloud delete sync', e));
+    deleteActiveProfileCloud(id, target).catch(e => console.warn('Cloud delete sync', e));
     showToast('Profil mitra telah dipindahkan ke Kotak Sampah');
   };
 
   const handleRestoreFromTrash = (id: string, directPublish: boolean = true) => {
+    const target = trashProfiles.find(p => p.id === id) || getTrashProfiles().find(p => p.id === id);
     restoreProfileFromTrash(id, directPublish);
     setActiveProfiles(getActiveProfiles());
     setPendingProfiles(getPendingProfiles());
     setTrashProfiles(getTrashProfiles());
-    restoreProfileFromTrashCloud(id, directPublish).catch(e => console.warn('Cloud restore sync', e));
+    restoreProfileFromTrashCloud(id, directPublish, target).catch(e => console.warn('Cloud restore sync', e));
     showToast(directPublish ? 'Mitra berhasil dipulihkan & langsung aktif di direktori!' : 'Mitra dikembalikan ke antrean pengajuan');
   };
 
