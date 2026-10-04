@@ -3,7 +3,7 @@ import { WorkerProfile } from '../types';
 import { formatRupiah } from '../utils/storage';
 import { 
   Star, MapPin, CheckCircle2, MessageCircle, 
-  Heart, ArrowUpRight, Image as ImageIcon 
+  Heart, ArrowUpRight, Image as ImageIcon, FileText 
 } from 'lucide-react';
 
 interface ProfileCardProps {
@@ -23,7 +23,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   onWhatsAppClick,
   onOpenLightbox
 }) => {
-  const displayImage = profile.workOutputs?.[0]?.url || profile.coverImage || profile.avatar;
+  const displayImage = profile.workOutputs?.find(w => w.type !== 'pdf' && !w.url.startsWith('data:application/pdf'))?.url || profile.coverImage || profile.avatar;
+  const hasPdf = profile.workOutputs?.some(w => w.type === 'pdf' || w.url.startsWith('data:application/pdf') || w.fileName?.endsWith('.pdf'));
 
   return (
     <article 
@@ -96,12 +97,20 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           </div>
 
-          {profile.workOutputs && profile.workOutputs.length > 0 && (
-            <div className="absolute bottom-2 right-2 rounded-lg bg-[#1A1A1A]/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm flex items-center gap-1">
-              <ImageIcon className="h-3 w-3" />
-              <span>{profile.workOutputs.length} Karya</span>
-            </div>
-          )}
+          <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+            {hasPdf && (
+              <div className="rounded-lg bg-[#FF5A5F] px-2 py-0.5 text-[10px] font-black text-white shadow-sm flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                <span>PDF</span>
+              </div>
+            )}
+            {profile.workOutputs && profile.workOutputs.length > 0 && (
+              <div className="rounded-lg bg-[#1A1A1A]/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm flex items-center gap-1">
+                <ImageIcon className="h-3 w-3" />
+                <span>{profile.workOutputs.length} Berkas</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bio preview */}

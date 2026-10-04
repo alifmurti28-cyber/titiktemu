@@ -5,7 +5,7 @@ import { formatRupiah } from '../utils/storage';
 import { 
   X, Lock, ShieldCheck, CheckCircle2, XCircle, 
   Trash2, Edit3, Plus, Download, Upload, RefreshCw, 
-  LogOut, Eye, MessageCircle, AlertTriangle, Check 
+  LogOut, Eye, MessageCircle, AlertTriangle, Check, FileText 
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -78,6 +78,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setEmail('alifmurti28@gmail.com');
     setPassword('admin123');
     setLoginError('');
+  };
+
+  const handleQuickLogin = () => {
+    setEmail('alifmurti28@gmail.com');
+    setPassword('admin123');
+    setLoginError('');
+    onLogin('alifmurti28@gmail.com', 'admin123');
   };
 
   // Filtered active profiles
@@ -258,15 +265,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               </button>
             </form>
 
-            {/* Quick Demo Credential Button */}
-            <div className="pt-4 border-t-2 border-[#1A1A1A]/10 text-center">
+            {/* Quick 1-Click Login Button */}
+            <div className="pt-4 border-t-2 border-[#1A1A1A]/10 space-y-2">
               <button
                 type="button"
-                onClick={fillDemoCredentials}
-                className="brutal-btn inline-flex items-center gap-2 bg-[#FFD166] px-4 py-2 text-xs font-black text-[#1A1A1A] cursor-pointer"
+                onClick={handleQuickLogin}
+                className="brutal-btn w-full flex items-center justify-center gap-2 bg-[#FFD166] py-3 text-xs font-black text-[#1A1A1A] cursor-pointer"
               >
-                <span>Gunakan Akun Admin Bawaan (alifmurti28@gmail.com)</span>
+                <ShieldCheck className="h-4 w-4" />
+                <span>Masuk Instan Sebagai Admin (1-Klik)</span>
               </button>
+              <p className="text-[11px] text-center text-[#1A1A1A]/60 font-medium">
+                Akun owner default: alifmurti28@gmail.com (Password: admin123)
+              </p>
             </div>
           </div>
         ) : (
@@ -386,6 +397,38 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                   Mulai {formatRupiah(p.startingPrice)} /{p.priceUnit}
                                 </span>
                               </div>
+
+                              {/* Portofolio & PDF Attachments Indicator */}
+                              {p.workOutputs && p.workOutputs.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1A1A1A]/10 mt-1">
+                                  {p.workOutputs.some(w => w.type === 'pdf' || w.url?.startsWith('data:application/pdf') || w.fileName?.endsWith('.pdf')) && (
+                                    <div className="flex items-center gap-1.5 rounded-lg bg-rose-50 border border-[#FF5A5F]/40 px-2 py-0.5 text-[11px] font-bold text-[#FF5A5F]">
+                                      <FileText className="h-3.5 w-3.5" />
+                                      <span>Portofolio PDF:</span>
+                                      {p.workOutputs
+                                        .filter(w => w.type === 'pdf' || w.url?.startsWith('data:application/pdf') || w.fileName?.endsWith('.pdf'))
+                                        .map((pdf, idx) => (
+                                          <a
+                                            key={idx}
+                                            href={pdf.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download={pdf.fileName || `${pdf.title}.pdf`}
+                                            className="underline hover:text-[#1A1A1A] font-extrabold ml-1"
+                                            title="Klik untuk membuka / mengunduh PDF"
+                                          >
+                                            {pdf.title || `Dokumen ${idx + 1}`} ↗
+                                          </a>
+                                        ))}
+                                    </div>
+                                  )}
+                                  {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf')).length > 0 && (
+                                    <span className="rounded-lg bg-neutral-100 border border-[#1A1A1A]/20 px-2 py-0.5 text-[11px] font-bold text-[#1A1A1A]">
+                                      🖼️ {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf')).length} Foto Karya
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
 

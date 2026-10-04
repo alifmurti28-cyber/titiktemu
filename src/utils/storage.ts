@@ -36,26 +36,74 @@ export function saveActiveProfiles(profiles: WorkerProfile[]): void {
   try {
     localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(profiles));
   } catch (e) {
-    console.error('Error saving active profiles', e);
+    console.warn('LocalStorage quota exceeded on active profiles. Saving compact version...', e);
+    try {
+      const compact = profiles.map(p => ({
+        ...p,
+        workOutputs: p.workOutputs?.map(w => {
+          if (w.url && w.url.startsWith('data:') && w.url.length > 50000) {
+            return { ...w, url: w.url.substring(0, 100) + '...[compact]' };
+          }
+          return w;
+        })
+      }));
+      localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(compact));
+    } catch (e2) {
+      console.error('Cannot save even compact active profiles to localStorage', e2);
+    }
   }
 }
 
+// In-memory fallback and cache to ensure submissions are NEVER lost due to localStorage quota
+let memoryPendingCache: WorkerProfile[] | null = null;
+
 export function getPendingProfiles(): WorkerProfile[] {
+  let fromStorage: WorkerProfile[] = [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PENDING);
-    if (!raw) return [];
-    return JSON.parse(raw);
+    if (raw) {
+      fromStorage = JSON.parse(raw);
+    }
   } catch (e) {
-    console.error('Error loading pending profiles', e);
-    return [];
+    console.warn('Error loading pending profiles from localStorage', e);
   }
+
+  if (memoryPendingCache) {
+    const mergedMap = new Map<string, WorkerProfile>();
+    fromStorage.forEach(p => mergedMap.set(p.id, p));
+    memoryPendingCache.forEach(p => mergedMap.set(p.id, p));
+    return Array.from(mergedMap.values());
+  }
+
+  memoryPendingCache = fromStorage;
+  return fromStorage;
 }
 
 export function savePendingProfiles(profiles: WorkerProfile[]): void {
+  // Always update in-memory cache first
+  memoryPendingCache = profiles;
+
   try {
     localStorage.setItem(STORAGE_KEY_PENDING, JSON.stringify(profiles));
   } catch (e) {
-    console.error('Error saving pending profiles', e);
+    console.warn('LocalStorage quota exceeded on pending profiles. Saving compact version...', e);
+    try {
+      const compactProfiles = profiles.map(p => ({
+        ...p,
+        workOutputs: p.workOutputs?.map(w => {
+          if (w.url && w.url.startsWith('data:') && w.url.length > 50000) {
+            return {
+              ...w,
+              url: w.url.substring(0, 100) + '...[compact]'
+            };
+          }
+          return w;
+        })
+      }));
+      localStorage.setItem(STORAGE_KEY_PENDING, JSON.stringify(compactProfiles));
+    } catch (e2) {
+      console.error('Failed to save compact pending profiles to localStorage', e2);
+    }
   }
 }
 
@@ -73,7 +121,7 @@ export function submitNewPendingProfile(profileData: Omit<WorkerProfile, 'id' | 
   };
 
   const currentPending = getPendingProfiles();
-  const updated = [newProfile, ...currentPending];
+  const updated = [newProfile, ...currentPending.filter(p => p.id !== newProfile.id)];
   savePendingProfiles(updated);
   return newProfile;
 }

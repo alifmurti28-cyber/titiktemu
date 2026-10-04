@@ -4,7 +4,7 @@ import { formatRupiah } from '../utils/storage';
 import { 
   X, Star, MapPin, CheckCircle2, MessageCircle, 
   ExternalLink, Copy, Check, Share2, 
-  Sparkles, Camera, Image as ImageIcon, Send 
+  Sparkles, Camera, Image as ImageIcon, Send, FileText, Download 
 } from 'lucide-react';
 
 interface ProfileDetailModalProps {
@@ -311,33 +311,79 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
 
               {profile.workOutputs && profile.workOutputs.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {profile.workOutputs.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => onOpenLightbox(item.url, item.title)}
-                      className="group relative overflow-hidden rounded-2xl border-2 border-[#1A1A1A] bg-white shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:-translate-y-1 transition-all cursor-pointer"
-                    >
-                      <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                        <img
-                          src={item.url}
-                          alt={item.title}
-                          referrerPolicy="no-referrer"
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
+                  {profile.workOutputs.map((item) => {
+                    const isPdf = item.type === 'pdf' || item.url.startsWith('data:application/pdf') || item.fileName?.toLowerCase().endsWith('.pdf');
+
+                    if (isPdf) {
+                      return (
+                        <div
+                          key={item.id}
+                          className="group relative overflow-hidden rounded-2xl border-2 border-[#1A1A1A] bg-white shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:-translate-y-1 transition-all flex flex-col justify-between"
+                        >
+                          <div className="aspect-[4/3] w-full bg-rose-50/80 flex flex-col items-center justify-center p-4 relative border-b-2 border-[#1A1A1A]">
+                            <span className="absolute top-2.5 left-2.5 rounded-md bg-[#FF5A5F] px-2 py-0.5 text-[10px] font-black text-white uppercase tracking-wider border border-[#1A1A1A]">
+                              PDF Portofolio
+                            </span>
+                            <FileText className="h-12 w-12 text-[#FF5A5F] mb-2 group-hover:scale-110 transition-transform" />
+                            <span className="text-xs font-black text-[#1A1A1A] text-center line-clamp-2 px-2">
+                              {item.title}
+                            </span>
+                            {item.fileSize && (
+                              <span className="text-[10px] text-[#1A1A1A]/60 font-mono mt-1">
+                                {item.fileSize}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="p-3.5 bg-white space-y-2.5">
+                            {item.description && (
+                              <p className="text-xs text-[#1A1A1A]/70 line-clamp-2 font-medium">
+                                {item.description}
+                              </p>
+                            )}
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={item.fileName || `${item.title}.pdf`}
+                              className="brutal-btn w-full flex items-center justify-center gap-1.5 bg-[#FFD166] py-2 text-xs font-black text-[#1A1A1A] cursor-pointer"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              <span>Buka / Unduh Dokumen PDF</span>
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => onOpenLightbox(item.url, item.title)}
+                        className="group relative overflow-hidden rounded-2xl border-2 border-[#1A1A1A] bg-white shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:-translate-y-1 transition-all cursor-pointer"
+                      >
+                        <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                          <img
+                            src={item.url}
+                            alt={item.title}
+                            referrerPolicy="no-referrer"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                        
+                        <div className="p-3.5 bg-white border-t-2 border-[#1A1A1A]">
+                          <h4 className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] truncate group-hover:text-[#6B4EFE] transition-colors">
+                            {item.title}
+                          </h4>
+                          {item.description && (
+                            <p className="mt-1 text-xs text-[#1A1A1A]/70 line-clamp-2 font-medium">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="p-3.5 bg-white border-t-2 border-[#1A1A1A]">
-                        <h4 className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] truncate group-hover:text-[#6B4EFE] transition-colors">
-                          {item.title}
-                        </h4>
-                        {item.description && (
-                          <p className="mt-1 text-xs text-[#1A1A1A]/70 line-clamp-2 font-medium">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="rounded-2xl border-2 border-dashed border-[#1A1A1A]/30 p-12 text-center text-[#1A1A1A]/60 font-bold">

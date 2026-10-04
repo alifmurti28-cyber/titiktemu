@@ -39,10 +39,12 @@ export interface PricePackage {
 
 export interface WorkOutput {
   id: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'pdf';
   url: string;
   title: string;
   description?: string;
+  fileName?: string;
+  fileSize?: string;
 }
 
 export interface Review {

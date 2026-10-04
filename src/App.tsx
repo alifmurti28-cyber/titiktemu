@@ -128,9 +128,12 @@ export default function App() {
 
   // Public Submit profile handler
   const handleSubmitProfile = (profileData: any) => {
-    submitNewPendingProfile(profileData);
-    setPendingProfiles(getPendingProfiles());
-    showToast('Pendaftaran profil berhasil dikirim! Menunggu tinjauan admin.');
+    const newProfile = submitNewPendingProfile(profileData);
+    setPendingProfiles((prev) => {
+      const exists = prev.some((p) => p.id === newProfile.id);
+      return exists ? prev : [newProfile, ...prev];
+    });
+    showToast('Pendaftaran profil berhasil dikirim! Cek di menu Admin untuk menyetujui.');
   };
 
   // Admin login
