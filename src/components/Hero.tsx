@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, MapPin, Sparkles, ArrowRight, CheckCircle2, MessageCircle, Star, Settings } from 'lucide-react';
 import { WorkerProfile } from '../types';
 import { formatRupiah } from '../utils/storage';
+import { SafeMediaImage } from '../utils/fileUtils';
 
 interface HeroProps {
   searchQuery: string;
@@ -152,7 +153,7 @@ export const Hero: React.FC<HeroProps> = ({
 
             <div className={`grid grid-cols-1 ${featuredProfiles.length === 1 ? 'sm:grid-cols-1 max-w-md mx-auto' : featuredProfiles.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-5 w-full`}>
               {featuredProfiles.map((p) => {
-                const imgUrl = p.workOutputs?.find(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.url?.startsWith('asset://'))?.url || p.coverImage || p.avatar;
+                const imgUrl = p.workOutputs?.find(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.fileName?.endsWith('.pdf'))?.url || p.coverImage || p.avatar;
 
                 return (
                   <button
@@ -181,13 +182,11 @@ export const Hero: React.FC<HeroProps> = ({
                       </p>
 
                       <div className="mt-3 h-28 w-full rounded-xl overflow-hidden border border-[#1A1A1A]/20 bg-neutral-100">
-                        <img 
+                        <SafeMediaImage 
                           src={imgUrl} 
                           alt={p.name} 
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            e.currentTarget.src = p.avatar;
-                          }}
+                          fallbackSrc={p.avatar}
                         />
                       </div>
                     </div>

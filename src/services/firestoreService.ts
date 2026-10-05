@@ -49,16 +49,19 @@ export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
 }
 
 /**
- * Ensures any large PDF or media strings inside workOutputs are automatically offloaded
+ * Ensures large PDF documents inside workOutputs are safely offloaded
  * to profileAssets dedicated documents, keeping the main profile document tiny (~5KB).
- * This completely prevents Firestore 1MB limits and LocalStorage quota errors.
+ * Photos (images) are kept as native high-speed image data URLs so they display
+ * instantly in all <img> tags and browser tabs.
  */
 export function sanitizeProfileForFirestore(profile: WorkerProfile): WorkerProfile {
   const sanitized = sanitizeForFirestore(profile);
   if (sanitized.workOutputs && Array.isArray(sanitized.workOutputs)) {
     sanitized.workOutputs = sanitized.workOutputs.map((wo) => {
-      if (wo.url && typeof wo.url === 'string' && wo.url.startsWith('data:') && wo.url.length > 80000) {
-        const assetId = wo.id || `wo-${Date.now()}`;
+      // ONLY offload large PDF documents to assetService
+      const isPdf = wo.type === 'pdf' || wo.fileName?.toLowerCase().endsWith('.pdf') || wo.url?.startsWith('data:application/pdf');
+      if (isPdf && wo.url && typeof wo.url === 'string' && wo.url.startsWith('data:') && wo.url.length > 50000) {
+        const assetId = wo.id || `wo-pdf-${Date.now()}`;
         saveAsset(assetId, wo.url, wo.fileName, profile.id).catch(() => {});
         return {
           ...wo,

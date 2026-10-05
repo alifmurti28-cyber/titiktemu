@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WorkerProfile, CategoryId } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { formatRupiah } from '../utils/storage';
+import { SafeMediaImage } from '../utils/fileUtils';
 import { 
   X, Lock, ShieldCheck, CheckCircle2, XCircle, 
   Trash2, Edit3, Plus, Download, Upload, RefreshCw, 
@@ -465,10 +466,26 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                         ))}
                                     </div>
                                   )}
-                                  {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf')).length > 0 && (
-                                    <span className="rounded-lg bg-neutral-100 border border-[#1A1A1A]/20 px-2 py-0.5 text-[11px] font-bold text-[#1A1A1A]">
-                                      🖼️ {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf')).length} Foto Karya
-                                    </span>
+                                  {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.fileName?.endsWith('.pdf')).length > 0 && (
+                                    <div className="flex items-center gap-1.5 bg-neutral-100 border border-[#1A1A1A]/20 px-2 py-1 rounded-lg">
+                                      <span className="text-[11px] font-bold text-[#1A1A1A]">
+                                        🖼️ {p.workOutputs.filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.fileName?.endsWith('.pdf')).length} Foto:
+                                      </span>
+                                      <div className="flex items-center gap-1">
+                                        {p.workOutputs
+                                          .filter(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.fileName?.endsWith('.pdf'))
+                                          .slice(0, 4)
+                                          .map((imgItem, idx) => (
+                                            <div key={idx} className="h-6 w-6 rounded-md overflow-hidden border border-[#1A1A1A] shrink-0">
+                                              <SafeMediaImage
+                                                src={imgItem.url}
+                                                alt={imgItem.title}
+                                                className="h-full w-full object-cover"
+                                              />
+                                            </div>
+                                          ))}
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               )}

@@ -7,7 +7,7 @@ import {
   AlertCircle, DollarSign, MessageCircle, FileText, 
   Lock, Save, Image as ImageIcon, Camera 
 } from 'lucide-react';
-import { compressImage, readFileAsDataUrl } from '../utils/fileUtils';
+import { compressImage, readFileAsDataUrl, SafeMediaImage } from '../utils/fileUtils';
 import { saveAsset } from '../services/assetService';
 
 interface EditPartnerProfileModalProps {
@@ -55,6 +55,7 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
 
   // Work Outputs (Images & PDFs)
   const [workOutputs, setWorkOutputs] = useState<WorkOutput[]>(profile.workOutputs || []);
+  const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
 
   // Security PIN
   const [editPin, setEditPin] = useState(profile.editPin || '');
@@ -128,10 +129,27 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImage(file, 400, 0.7);
+        const compressed = await compressImage(file, 400, 0.65);
         setAvatar(compressed);
       } catch (err) {
         console.error('Failed to compress avatar', err);
+      } finally {
+        e.target.value = '';
+      }
+    }
+  };
+
+  // Cover image file upload
+  const handleCoverFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file, 800, 0.65);
+        setCoverImage(compressed);
+      } catch (err) {
+        console.error('Failed to compress cover image', err);
+      } finally {
+        e.target.value = '';
       }
     }
   };
@@ -146,22 +164,24 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
 
       if (isPdf && file.size > 1024 * 1024) {
         alert('File PDF melebihi batas 1 MB. Mohon gunakan dokumen PDF di bawah 1 MB agar dapat tersimpan di server cloud dan terbuka seketika di semua perangkat.');
+        e.target.value = '';
         return;
       }
 
+      setIsUploadingPortfolio(true);
       try {
         const assetId = `wo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
         let finalUrl = '';
 
         if (isPdf) {
           finalUrl = await readFileAsDataUrl(file);
+          await saveAsset(assetId, finalUrl, file.name);
         } else {
-          // Compress portfolio image to ~30-50KB for instant loading across all devices
-          finalUrl = await compressImage(file, 800, 0.68);
+          // Compress portfolio image to compact high-clarity data URL (~25-45KB)
+          finalUrl = await compressImage(file, 800, 0.65);
+          // Also back up to assetService
+          saveAsset(assetId, finalUrl, file.name).catch(() => {});
         }
-
-        // Save to IndexedDB & Firestore dedicated profileAssets collection
-        await saveAsset(assetId, finalUrl, file.name);
 
         setWorkOutputs((prev) => [
           ...prev,
@@ -177,6 +197,10 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
         ]);
       } catch (err) {
         console.error('Failed to process uploaded file', err);
+        alert('Gagal memproses file foto. Pastikan format file adalah JPG, PNG, atau WebP.');
+      } finally {
+        setIsUploadingPortfolio(false);
+        e.target.value = '';
       }
     }
   };
@@ -383,15 +407,27 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
 
                   <div>
                     <label className="block text-xs font-black text-[#1A1A1A] mb-1">
-                      Foto Sampul / Banner URL (Opsional)
+                      Foto Sampul / Banner (Opsional)
                     </label>
-                    <input
-                      type="text"
-                      value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full rounded-xl bg-white px-3 py-2 text-xs font-medium text-[#1A1A1A] border-2 border-[#1A1A1A] outline-none"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={coverImage}
+                        onChange={(e) => setCoverImage(e.target.value)}
+                        placeholder="https://... atau upload file"
+                        className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-medium text-[#1A1A1A] border-2 border-[#1A1A1A] outline-none"
+                      />
+                      <label className="brutal-btn inline-flex items-center gap-1.5 bg-[#FFD166] px-3 py-2 text-xs font-black text-[#1A1A1A] cursor-pointer shrink-0">
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload File</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -687,7 +723,7 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
                 {/* List of current work outputs */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {workOutputs.map((item) => {
-                    const isPdf = item.type === 'pdf' || item.url.startsWith('data:application/pdf') || item.fileName?.toLowerCase().endsWith('.pdf');
+                    const isPdf = item.type === 'pdf' || item.url?.startsWith('data:application/pdf') || (item.url?.startsWith('asset://') && (item.title?.toLowerCase().includes('pdf') || item.fileName?.toLowerCase().endsWith('.pdf'))) || item.fileName?.toLowerCase().endsWith('.pdf');
                     return (
                       <div 
                         key={item.id} 
@@ -708,7 +744,7 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
                           </div>
                         ) : (
                           <div className="relative aspect-[16/10] w-full bg-neutral-100 overflow-hidden">
-                            <img src={item.url} alt={item.title} className="h-full w-full object-cover" />
+                            <SafeMediaImage src={item.url} alt={item.title} className="h-full w-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 flex items-end p-1.5 text-[10px] font-bold text-white truncate">
                               {item.title}
                             </div>
@@ -730,13 +766,14 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
 
                 {/* Upload action and link input */}
                 <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <label className="brutal-btn flex items-center justify-center gap-1.5 bg-[#FFD166] px-4 py-2.5 text-xs font-black text-[#1A1A1A] cursor-pointer w-full sm:w-auto">
+                  <label className={`brutal-btn flex items-center justify-center gap-1.5 bg-[#FFD166] px-4 py-2.5 text-xs font-black text-[#1A1A1A] cursor-pointer w-full sm:w-auto ${isUploadingPortfolio ? 'opacity-50 pointer-events-none' : ''}`}>
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Unggah Berkas Baru (Foto / PDF)</span>
+                    <span>{isUploadingPortfolio ? 'Memproses Berkas...' : 'Unggah Berkas Baru (Foto / PDF)'}</span>
                     <input
                       type="file"
                       accept="image/*,.pdf,application/pdf"
                       onChange={handlePortfolioFileUpload}
+                      disabled={isUploadingPortfolio}
                       className="hidden"
                     />
                   </label>

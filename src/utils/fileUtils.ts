@@ -1,67 +1,100 @@
-/**
- * Utility functions for handling and optimizing image and PDF uploads
- */
 import { getAsset } from '../services/assetService';
 
+export { SafeMediaImage } from '../components/SafeMediaImage';
+
 /**
- * Compress an image file to a lightweight, high-quality JPEG Data URL.
- * Resizes large camera photos (5-15MB) down to crisp ~30-50KB images
- * so they fit seamlessly in LocalStorage and Firestore without corruption or size limits.
+ * Safely compress any image file (JPG, PNG, WebP, HEIC/HEIF, etc.) to a compact,
+ * high-clarity JPEG data URL (typically 25 KB - 45 KB).
+ * Robust against empty file.type on mobile browsers, canvas edge cases, and orientation.
  */
 export function compressImage(
   file: File,
   maxDimension: number = 800,
-  quality: number = 0.68
+  initialQuality: number = 0.65
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    // If not an image, return raw data URL
-    if (!file.type.startsWith('image/')) {
+    const isImageByExt = /\.(jpg|jpeg|png|webp|gif|bmp|heic|heif|jfif|svg)$/i.test(file.name);
+    const isImageByType = file.type.startsWith('image/');
+
+    // If not an image (e.g. PDF), read as raw data URL
+    if (!isImageByType && !isImageByExt) {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('Gagal membaca berkas'));
       reader.readAsDataURL(file);
       return;
     }
 
     const reader = new FileReader();
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
     reader.onload = (e) => {
+      const rawDataUrl = e.target?.result as string;
+      if (!rawDataUrl) {
+        reject(new Error('File kosong'));
+        return;
+      }
+
       const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(e.target?.result as string);
-          return;
-        }
-
-        // Fill white background for transparent PNGs converted to JPEG
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to high-efficiency JPEG
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
+      // If canvas loading fails, fallback to raw data URL so user file is never dropped
+      img.onerror = () => {
+        console.warn('Notice: Image canvas fallback used');
+        resolve(rawDataUrl);
       };
-      img.src = e.target?.result as string;
+
+      img.onload = () => {
+        try {
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (!width || !height) {
+            resolve(rawDataUrl);
+            return;
+          }
+
+          // Scale down proportionally
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(rawDataUrl);
+            return;
+          }
+
+          // Fill white background for transparent PNGs
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Progressive quality optimization:
+          // Keep photo crisp while ensuring the base64 string stays well under 50KB (~60,000 chars)
+          let q = initialQuality;
+          let compressedUrl = canvas.toDataURL('image/jpeg', q);
+          while (compressedUrl.length > 55000 && q > 0.35) {
+            q -= 0.1;
+            compressedUrl = canvas.toDataURL('image/jpeg', q);
+          }
+
+          resolve(compressedUrl);
+        } catch (canvasErr) {
+          console.warn('Canvas processing notice, using raw image', canvasErr);
+          resolve(rawDataUrl);
+        }
+      };
+
+      img.src = rawDataUrl;
     };
+
     reader.readAsDataURL(file);
   });
 }
@@ -79,6 +112,19 @@ export function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 /**
+ * Safely resolves an asset URL. If it's asset://id, loads from IndexedDB/Firestore.
+ */
+export async function resolveAssetUrl(urlOrAssetId?: string): Promise<string> {
+  if (!urlOrAssetId) return '';
+  if (urlOrAssetId.startsWith('asset://')) {
+    const assetId = urlOrAssetId.replace(/^asset:\/\//, '');
+    const fetched = await getAsset(assetId);
+    return fetched || urlOrAssetId;
+  }
+  return urlOrAssetId;
+}
+
+/**
  * Safely open or download a PDF file from a base64 Data URL, asset ID, or remote URL.
  * Converts base64 to a Blob Object URL to bypass browser iframe & base64 navigation restrictions.
  */
@@ -93,7 +139,7 @@ export async function openOrDownloadPdf(
 
     // If it's an asset ID or key, retrieve from IndexedDB or Firestore cloud
     if (!targetUrl.startsWith('data:') && !targetUrl.startsWith('http')) {
-      const fetched = await getAsset(targetUrl);
+      const fetched = await getAsset(targetUrl.replace(/^asset:\/\//, ''));
       if (fetched) targetUrl = fetched;
     }
 

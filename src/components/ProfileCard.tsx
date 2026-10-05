@@ -5,6 +5,7 @@ import {
   Star, MapPin, CheckCircle2, MessageCircle, 
   Heart, ArrowUpRight, Image as ImageIcon, FileText 
 } from 'lucide-react';
+import { SafeMediaImage } from '../utils/fileUtils';
 
 interface ProfileCardProps {
   profile: WorkerProfile;
@@ -23,7 +24,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   onWhatsAppClick,
   onOpenLightbox
 }) => {
-  const displayImage = profile.workOutputs?.find(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.url?.startsWith('asset://'))?.url || profile.coverImage || profile.avatar;
+  const displayImage = profile.workOutputs?.find(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.fileName?.endsWith('.pdf'))?.url || profile.coverImage || profile.avatar;
   const hasPdf = profile.workOutputs?.some(w => w.type === 'pdf' || w.url?.startsWith('data:application/pdf') || w.url?.startsWith('asset://') || w.fileName?.endsWith('.pdf'));
 
   return (
@@ -35,14 +36,14 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
         {/* Top Header inside Card */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
-            <img
-              src={profile.avatar}
-              alt={profile.name}
-              className="h-12 w-12 rounded-full object-cover border-2 border-[#1A1A1A] shrink-0"
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
-              }}
-            />
+            <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-[#1A1A1A] shrink-0">
+              <SafeMediaImage
+                src={profile.avatar}
+                alt={profile.name}
+                className="h-full w-full object-cover"
+                fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+              />
+            </div>
             <div>
               <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A] group-hover:text-[#6B4EFE] transition-colors leading-tight">
                 {profile.name}
@@ -73,14 +74,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
         {/* Media / Work Showcase Box */}
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border-2 border-[#1A1A1A] bg-neutral-100 my-2">
-          <img
+          <SafeMediaImage
             src={displayImage}
             alt={`Portofolio ${profile.name} - ${profile.title}`}
-            referrerPolicy="no-referrer"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
+            fallbackSrc="https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80"
           />
 
           {/* Floating Badges */}

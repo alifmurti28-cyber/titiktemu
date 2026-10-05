@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { WorkerProfile, PricePackage } from '../types';
 import { formatRupiah } from '../utils/storage';
-import { openOrDownloadPdf } from '../utils/fileUtils';
+import { openOrDownloadPdf, SafeMediaImage, resolveAssetUrl } from '../utils/fileUtils';
 import { 
   X, Star, MapPin, CheckCircle2, MessageCircle, 
   ExternalLink, Copy, Check, Share2, 
@@ -92,11 +92,11 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
 
         {/* Modal Header & Hero Banner */}
         <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-neutral-100 shrink-0 border-b-2 border-[#1A1A1A]">
-          <img
+          <SafeMediaImage
             src={coverImg}
             alt={profile.name}
-            referrerPolicy="no-referrer"
             className="h-full w-full object-cover"
+            fallbackSrc="https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
@@ -130,15 +130,14 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           {/* Profile Identity Overlay */}
           <div className="absolute bottom-4 left-4 right-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex items-end gap-3.5">
-              <img
-                src={profile.avatar}
-                alt={profile.name}
-                referrerPolicy="no-referrer"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover border-3 border-white shadow-xl bg-neutral-200"
-                onError={(e) => {
-                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=1e293b&color=f8fafc`;
-                }}
-              />
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border-3 border-white shadow-xl bg-neutral-200 shrink-0">
+                <SafeMediaImage
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="h-full w-full object-cover"
+                  fallbackSrc={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=1e293b&color=f8fafc`}
+                />
+              </div>
               <div className="text-white drop-shadow-sm">
                 <div className="flex items-center gap-2">
                   <h2 className="font-heading text-xl sm:text-2xl font-black text-white tracking-tight">
@@ -375,19 +374,18 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     return (
                       <div
                         key={item.id}
-                        onClick={() => onOpenLightbox(item.url, item.title)}
+                        onClick={async () => {
+                          const resolved = await resolveAssetUrl(item.url);
+                          onOpenLightbox(resolved, item.title);
+                        }}
                         className="group relative overflow-hidden rounded-2xl border-2 border-[#1A1A1A] bg-white shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:-translate-y-1 transition-all cursor-pointer"
                       >
                         <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                          <img
+                          <SafeMediaImage
                             src={item.url}
                             alt={item.title}
-                            referrerPolicy="no-referrer"
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              target.src = 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80';
-                            }}
+                            fallbackSrc="https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80"
                           />
                         </div>
                         

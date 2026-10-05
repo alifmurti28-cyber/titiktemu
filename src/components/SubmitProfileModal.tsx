@@ -5,7 +5,7 @@ import {
   X, Sparkles, Upload, Plus, Trash2, CheckCircle2, 
   AlertCircle, DollarSign, MessageCircle, FileText, Lock 
 } from 'lucide-react';
-import { compressImage, readFileAsDataUrl } from '../utils/fileUtils';
+import { compressImage, readFileAsDataUrl, SafeMediaImage } from '../utils/fileUtils';
 import { saveAsset } from '../services/assetService';
 
 interface SubmitProfileModalProps {
@@ -37,8 +37,10 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
   const [startingPrice, setStartingPrice] = useState<number>(350000);
   const [priceUnit, setPriceUnit] = useState('sesi');
 
-  // Avatar and work outputs
+  // Avatar, cover image and work outputs
   const [avatar, setAvatar] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80');
+  const [coverImage, setCoverImage] = useState('');
+  const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
   const [workOutputs, setWorkOutputs] = useState<WorkOutput[]>([
     {
       id: 'wo-new-1',
@@ -115,20 +117,37 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
     setWorkImgUrl('');
   };
 
-  // File upload avatar demo handler
+  // File upload avatar handler
   const handleAvatarFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImage(file, 400, 0.7);
+        const compressed = await compressImage(file, 400, 0.65);
         setAvatar(compressed);
       } catch (err) {
         console.error('Failed to compress avatar', err);
+      } finally {
+        e.target.value = '';
       }
     }
   };
 
-  // File upload portfolio demo handler (Supports Image & PDF)
+  // File upload cover banner handler
+  const handleCoverFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file, 800, 0.65);
+        setCoverImage(compressed);
+      } catch (err) {
+        console.error('Failed to compress cover banner', err);
+      } finally {
+        e.target.value = '';
+      }
+    }
+  };
+
+  // File upload portfolio handler (Supports Image & PDF)
   const handlePortfolioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -138,22 +157,24 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
 
       if (isPdf && file.size > 1024 * 1024) {
         alert('File PDF melebihi batas 1 MB. Mohon gunakan dokumen PDF di bawah 1 MB agar dapat tersimpan di server cloud dan terbuka seketika di semua perangkat.');
+        e.target.value = '';
         return;
       }
 
+      setIsUploadingPortfolio(true);
       try {
         const assetId = `wo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
         let finalUrl = '';
 
         if (isPdf) {
           finalUrl = await readFileAsDataUrl(file);
+          await saveAsset(assetId, finalUrl, file.name);
         } else {
-          // Compress portfolio photos to ~30-50KB for instant loading across all devices
-          finalUrl = await compressImage(file, 800, 0.68);
+          // Compress portfolio photos to compact high-clarity data URL (~25-45KB)
+          finalUrl = await compressImage(file, 800, 0.65);
+          // Also back up to assetService
+          saveAsset(assetId, finalUrl, file.name).catch(() => {});
         }
-
-        // Save to IndexedDB & Firestore dedicated profileAssets collection
-        await saveAsset(assetId, finalUrl, file.name);
 
         setWorkOutputs((prev) => [
           ...prev,
@@ -169,6 +190,10 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
         ]);
       } catch (err) {
         console.error('Failed to process uploaded file', err);
+        alert('Gagal memproses file foto. Pastikan format file adalah JPG, PNG, atau WebP.');
+      } finally {
+        setIsUploadingPortfolio(false);
+        e.target.value = '';
       }
     }
   };
@@ -196,6 +221,7 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
       title: title.trim(),
       category: resolvedCategory,
       avatar,
+      coverImage: coverImage.trim() || undefined,
       bio: bio.trim(),
       city: resolvedCity,
       fullAddress: fullAddress.trim(),
@@ -386,27 +412,58 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                   </div>
                 </div>
 
-                {/* Avatar selection */}
-                <div>
-                  <label className="block text-xs font-bold text-[#1A1A1A] mb-1">
-                    Foto Profil / Logo Brand *
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={avatar}
-                      alt="Avatar Preview"
-                      className="h-14 w-14 rounded-2xl object-cover border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]"
-                    />
-                    <label className="brutal-btn flex items-center gap-2 bg-[#FFD166] px-4 py-2 text-xs font-bold text-[#1A1A1A] cursor-pointer">
-                      <Upload className="h-3.5 w-3.5" />
-                      <span>Upload Foto Baru</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarFileUpload}
-                        className="hidden"
-                      />
+                {/* Avatar & Cover selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1A1A1A] mb-1">
+                      Foto Profil / Logo Brand *
                     </label>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={avatar}
+                        alt="Avatar Preview"
+                        className="h-14 w-14 rounded-2xl object-cover border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] shrink-0"
+                      />
+                      <label className="brutal-btn flex items-center gap-1.5 bg-[#FFD166] px-3 py-2 text-xs font-bold text-[#1A1A1A] cursor-pointer">
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload Foto</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1A1A1A] mb-1">
+                      Foto Sampul / Banner (Opsional)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {coverImage ? (
+                        <img
+                          src={coverImage}
+                          alt="Cover Preview"
+                          className="h-14 w-24 rounded-xl object-cover border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] shrink-0"
+                        />
+                      ) : (
+                        <div className="h-14 w-24 rounded-xl border-2 border-dashed border-[#1A1A1A]/30 bg-neutral-100 flex items-center justify-center text-[10px] text-[#1A1A1A]/40 font-bold shrink-0">
+                          Belum ada
+                        </div>
+                      )}
+                      <label className="brutal-btn flex items-center gap-1.5 bg-white text-[#1A1A1A] hover:bg-[#FFD166] px-3 py-2 text-xs font-bold border-2 border-[#1A1A1A] cursor-pointer">
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>{coverImage ? 'Ganti Banner' : 'Upload Banner'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -665,7 +722,7 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                 {/* List of uploaded outputs with PDF document preview */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {workOutputs.map((item) => {
-                    const isPdf = item.type === 'pdf' || item.url.startsWith('data:application/pdf') || item.fileName?.toLowerCase().endsWith('.pdf');
+                    const isPdf = item.type === 'pdf' || item.url?.startsWith('data:application/pdf') || (item.url?.startsWith('asset://') && (item.title?.toLowerCase().includes('pdf') || item.fileName?.toLowerCase().endsWith('.pdf'))) || item.fileName?.toLowerCase().endsWith('.pdf');
                     return (
                       <div 
                         key={item.id} 
@@ -686,7 +743,7 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
                           </div>
                         ) : (
                           <div className="relative aspect-[16/10] w-full bg-neutral-100 overflow-hidden">
-                            <img src={item.url} alt={item.title} className="h-full w-full object-cover" />
+                            <SafeMediaImage src={item.url} alt={item.title} className="h-full w-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 flex items-end p-1.5 text-[10px] font-bold text-white truncate">
                               {item.title}
                             </div>
@@ -709,13 +766,14 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
 
                 {/* Upload action and link input */}
                 <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <label className="brutal-btn flex items-center justify-center gap-1.5 bg-[#FFD166] px-4 py-2.5 text-xs font-black text-[#1A1A1A] cursor-pointer w-full sm:w-auto">
+                  <label className={`brutal-btn flex items-center justify-center gap-1.5 bg-[#FFD166] px-4 py-2.5 text-xs font-black text-[#1A1A1A] cursor-pointer w-full sm:w-auto ${isUploadingPortfolio ? 'opacity-50 pointer-events-none' : ''}`}>
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Unggah Berkas (Foto / PDF)</span>
+                    <span>{isUploadingPortfolio ? 'Memproses Berkas...' : 'Unggah Berkas (Foto / PDF)'}</span>
                     <input
                       type="file"
                       accept="image/*,.pdf,application/pdf"
                       onChange={handlePortfolioFileUpload}
+                      disabled={isUploadingPortfolio}
                       className="hidden"
                     />
                   </label>
