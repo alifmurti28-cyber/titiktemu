@@ -23,8 +23,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   onWhatsAppClick,
   onOpenLightbox
 }) => {
-  const displayImage = profile.workOutputs?.find(w => w.type !== 'pdf' && !w.url.startsWith('data:application/pdf'))?.url || profile.coverImage || profile.avatar;
-  const hasPdf = profile.workOutputs?.some(w => w.type === 'pdf' || w.url.startsWith('data:application/pdf') || w.fileName?.endsWith('.pdf'));
+  const displayImage = profile.workOutputs?.find(w => w.type !== 'pdf' && !w.url?.startsWith('data:application/pdf') && !w.url?.startsWith('asset://'))?.url || profile.coverImage || profile.avatar;
+  const hasPdf = profile.workOutputs?.some(w => w.type === 'pdf' || w.url?.startsWith('data:application/pdf') || w.url?.startsWith('asset://') || w.fileName?.endsWith('.pdf'));
 
   return (
     <article 

@@ -5,7 +5,7 @@ import { formatRupiah } from '../utils/storage';
 import { 
   X, Lock, ShieldCheck, CheckCircle2, XCircle, 
   Trash2, Edit3, Plus, Download, Upload, RefreshCw, 
-  LogOut, Eye, MessageCircle, AlertTriangle, Check, FileText, RotateCcw, Undo2 
+  LogOut, Eye, MessageCircle, AlertTriangle, Check, FileText, RotateCcw, Undo2, Star 
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -21,6 +21,7 @@ interface AdminModalProps {
   onRejectPending: (id: string) => void;
   onDeleteActive: (id: string) => void;
   onUpdateActive: (profile: WorkerProfile) => void;
+  onToggleFeatured?: (id: string) => void;
   onAddNewManual: (profileData: any) => void;
   onResetDefaults: () => void;
   onRestoreFromTrash?: (id: string, directPublish?: boolean) => void;
@@ -41,6 +42,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onRejectPending,
   onDeleteActive,
   onUpdateActive,
+  onToggleFeatured,
   onAddNewManual,
   onResetDefaults,
   onRestoreFromTrash,
@@ -506,6 +508,64 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               {/* TAB 2: ACTIVE PROFILES DIRECTORY */}
               {activeTab === 'active' && (
                 <div className="space-y-4">
+                  {/* LIVE FEATURED SHOWCASE CONTROL PANEL */}
+                  <div className="rounded-2xl border-2 border-[#1A1A1A] bg-amber-50/80 p-4 sm:p-5 shadow-[4px_4px_0px_#1A1A1A] space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#FFD166] border-2 border-[#1A1A1A] text-xs font-black shadow-[1.5px_1.5px_0px_#1A1A1A]">
+                          ⭐
+                        </span>
+                        <div>
+                          <h4 className="font-heading text-sm font-black text-[#1A1A1A] flex items-center gap-2">
+                            <span>Sorotan Beranda Awal Website (Live Dashboard Showcase)</span>
+                            <span className="rounded-full bg-[#6B4EFE] text-white text-[10px] font-black px-2 py-0.5">
+                              Real-time Live
+                            </span>
+                          </h4>
+                          <p className="text-[11px] text-[#1A1A1A]/70 font-medium">
+                            Tentukan siapa mitra yang berhak tampil di posisi teratas halaman utama website. Perubahan langsung aktif di semua tab dan perangkat.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-black text-[#1A1A1A] bg-white border border-[#1A1A1A] px-2.5 py-1 rounded-lg shrink-0">
+                        {activeProfiles.filter(p => p.featured).length} Mitra Aktif di Sorotan
+                      </span>
+                    </div>
+
+                    {/* Featured List Chips */}
+                    {activeProfiles.filter(p => p.featured).length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {activeProfiles.filter(p => p.featured).map((fp) => (
+                          <div
+                            key={fp.id}
+                            className="flex items-center gap-2 bg-white rounded-xl border-2 border-[#1A1A1A] px-2.5 py-1.5 shadow-[2px_2px_0px_#1A1A1A]"
+                          >
+                            <img src={fp.avatar} alt={fp.name} className="h-6 w-6 rounded-full object-cover border border-[#1A1A1A]" />
+                            <div className="text-left">
+                              <span className="font-black text-xs text-[#1A1A1A] block leading-tight">{fp.name}</span>
+                              <span className="text-[10px] text-[#6B4EFE] font-bold block">{fp.category} • {fp.city}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (onToggleFeatured) onToggleFeatured(fp.id);
+                                else onUpdateActive({ ...fp, featured: false });
+                              }}
+                              className="ml-1 text-xs font-black text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-50 cursor-pointer"
+                              title="Cabut dari beranda awal"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-[#1A1A1A]/30 bg-white/60 p-3 text-center text-xs text-[#1A1A1A]/60 font-medium">
+                        Belum ada mitra yang disematkan ke beranda. Klik tombol <strong>"⭐ Pasang di Beranda"</strong> pada tabel mitra di bawah untuk memilih siapa yang ingin ditampilkan di halaman depan!
+                      </div>
+                    )}
+                  </div>
+
                   {/* Search Bar */}
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                     <input
@@ -531,6 +591,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           <th className="p-3">Kota</th>
                           <th className="p-3">Mulai Tarif</th>
                           <th className="p-3">WhatsApp</th>
+                          <th className="p-3 text-center">Sorotan Beranda</th>
                           <th className="p-3 text-center">Status</th>
                           <th className="p-3 text-right">Aksi</th>
                         </tr>
@@ -555,6 +616,26 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                               {formatRupiah(p.startingPrice)}
                             </td>
                             <td className="p-3 font-mono font-bold text-[#1A1A1A]">{p.whatsapp}</td>
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (onToggleFeatured) {
+                                    onToggleFeatured(p.id);
+                                  } else {
+                                    onUpdateActive({ ...p, featured: !p.featured });
+                                  }
+                                }}
+                                className={`rounded-xl px-2.5 py-1 text-[10px] font-black border-2 border-[#1A1A1A] cursor-pointer transition-all ${
+                                  p.featured
+                                    ? 'bg-[#FFD166] text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] hover:bg-[#ffe082]'
+                                    : 'bg-white text-neutral-400 border-neutral-300 hover:border-[#1A1A1A] hover:text-[#1A1A1A]'
+                                }`}
+                                title={p.featured ? 'Klik untuk cabut dari sorotan beranda' : 'Klik untuk tampilkan di sorotan beranda website'}
+                              >
+                                {p.featured ? '⭐ Tampil di Beranda' : '+ Pasang di Beranda'}
+                              </button>
+                            </td>
                             <td className="p-3 text-center">
                               <button
                                 type="button"

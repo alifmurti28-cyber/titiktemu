@@ -160,7 +160,7 @@ export const SubmitProfileModal: React.FC<SubmitProfileModalProps> = ({
           {
             id: assetId,
             type: isPdf ? 'pdf' : 'image',
-            url: finalUrl,
+            url: isPdf ? `asset://${assetId}` : finalUrl,
             title: file.name.replace(/\.[^/.]+$/, '') || (isPdf ? 'Portofolio Dokumen PDF' : 'Hasil Proyek Baru'),
             description: isPdf ? `Dokumen Portofolio PDF (${sizeFormatted})` : undefined,
             fileName: file.name,

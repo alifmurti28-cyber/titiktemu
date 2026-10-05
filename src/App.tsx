@@ -334,6 +334,28 @@ export default function App() {
     showToast('Mitra baru berhasil ditambahkan langsung ke cloud!');
   };
 
+  // Live toggle featured status on home dashboard
+  const handleToggleFeatured = (id: string) => {
+    const target = activeProfiles.find(p => p.id === id);
+    if (!target) return;
+    const updated: WorkerProfile = {
+      ...target,
+      featured: !target.featured
+    };
+    updateActiveProfile(updated);
+    setActiveProfiles(getActiveProfiles());
+    updateActiveProfileCloud(updated).catch(e => console.warn('Cloud toggle featured sync', e));
+    showToast(
+      updated.featured
+        ? `⭐ ${updated.name} disematkan ke Sorotan Beranda Awal!`
+        : `${updated.name} dicabut dari Sorotan Beranda Awal.`
+    );
+  };
+
+  const featuredProfiles = useMemo(() => {
+    return activeProfiles.filter(p => p.featured);
+  }, [activeProfiles]);
+
   const handleResetDefaults = () => {
     resetProfilesToDefault();
     setActiveProfiles(getActiveProfiles());
@@ -445,6 +467,9 @@ export default function App() {
         cities={cities}
         totalProfiles={activeProfiles.length}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+        featuredProfiles={featuredProfiles}
+        isAdmin={isAdmin}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
         onSelectProfileById={(id: string) => {
           const target = activeProfiles.find((p) => p.id === id) || INITIAL_PROFILES.find((p) => p.id === id);
           if (target) {
@@ -603,6 +628,7 @@ export default function App() {
         onRejectPending={handleRejectPending}
         onDeleteActive={handleDeleteActive}
         onUpdateActive={handleUpdateActive}
+        onToggleFeatured={handleToggleFeatured}
         onAddNewManual={handleAddNewManual}
         onResetDefaults={handleResetDefaults}
         onRestoreFromTrash={handleRestoreFromTrash}

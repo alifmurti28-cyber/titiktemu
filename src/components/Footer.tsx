@@ -26,9 +26,6 @@ export const Footer: React.FC<FooterProps> = ({
               <h3 className="font-heading text-2xl sm:text-4xl font-black text-[#1A1A1A] tracking-tight">
                 Punya Keahlian Jasa? Daftarkan Profilmu Sekarang
               </h3>
-              <p className="text-sm sm:text-base text-[#1A1A1A]/80 max-w-xl font-medium">
-                Bantu calon customer menemukan kontak WhatsApp, daftar harga, dan bukti portofolio kerja Anda dengan mudah tanpa potongan komisi.
-              </p>
             </div>
 
             <button
@@ -36,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={onOpenSubmitModal}
               className="brutal-btn flex items-center gap-2 bg-[#6B4EFE] px-7 py-4 text-sm font-extrabold text-white cursor-pointer shrink-0"
             >
-              <span>Daftar Jadi Mitra Gratis</span>
+              <span>Daftarkan Jasa</span>
               <ArrowUpRight className="h-4 w-4 text-[#FFD166]" />
             </button>
           </div>

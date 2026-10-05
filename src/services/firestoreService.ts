@@ -13,6 +13,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { WorkerProfile, Review } from '../types';
 import { INITIAL_PROFILES, INITIAL_PENDING_PROFILES } from '../data/initialData';
 import { getDeletedProfileIds } from '../utils/storage';
+import { saveAsset } from './assetService';
 
 const ACTIVE_COLLECTION = 'activeProfiles';
 const PENDING_COLLECTION = 'pendingProfiles';
@@ -45,6 +46,30 @@ export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
     }
   }
   return result as T;
+}
+
+/**
+ * Ensures any large PDF or media strings inside workOutputs are automatically offloaded
+ * to profileAssets dedicated documents, keeping the main profile document tiny (~5KB).
+ * This completely prevents Firestore 1MB limits and LocalStorage quota errors.
+ */
+export function sanitizeProfileForFirestore(profile: WorkerProfile): WorkerProfile {
+  const sanitized = sanitizeForFirestore(profile);
+  if (sanitized.workOutputs && Array.isArray(sanitized.workOutputs)) {
+    sanitized.workOutputs = sanitized.workOutputs.map((wo) => {
+      if (wo.url && typeof wo.url === 'string' && wo.url.startsWith('data:') && wo.url.length > 80000) {
+        const assetId = wo.id || `wo-${Date.now()}`;
+        saveAsset(assetId, wo.url, wo.fileName, profile.id).catch(() => {});
+        return {
+          ...wo,
+          id: assetId,
+          url: `asset://${assetId}`
+        };
+      }
+      return wo;
+    });
+  }
+  return sanitized;
 }
 
 /**
@@ -243,8 +268,8 @@ export async function approvePendingProfileCloud(
     };
 
     const activeRef = doc(db, ACTIVE_COLLECTION, profileId);
-    // Write directly to active collection
-    await setDoc(activeRef, sanitizeForFirestore(activatedProfile), { merge: true });
+    // Write directly to active collection using sanitizeProfileForFirestore
+    await setDoc(activeRef, sanitizeProfileForFirestore(activatedProfile), { merge: true });
 
     // Clean up from pending collection
     try {
@@ -294,7 +319,7 @@ export async function rejectPendingProfileCloud(
     };
 
     const trashRef = doc(db, TRASH_COLLECTION, profileId);
-    await setDoc(trashRef, sanitizeForFirestore(trashedProfile), { merge: true });
+    await setDoc(trashRef, sanitizeProfileForFirestore(trashedProfile), { merge: true });
 
     try {
       await deleteDoc(pendingRef);
@@ -312,7 +337,7 @@ export async function rejectPendingProfileCloud(
 export async function updateActiveProfileCloud(profile: WorkerProfile): Promise<void> {
   try {
     const docRef = doc(db, ACTIVE_COLLECTION, profile.id);
-    await setDoc(docRef, sanitizeForFirestore(profile), { merge: true });
+    await setDoc(docRef, sanitizeProfileForFirestore(profile), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${ACTIVE_COLLECTION}/${profile.id}`);
   }

@@ -327,7 +327,7 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               {profile.workOutputs && profile.workOutputs.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {profile.workOutputs.map((item) => {
-                    const isPdf = item.type === 'pdf' || item.url.startsWith('data:application/pdf') || item.fileName?.toLowerCase().endsWith('.pdf');
+                    const isPdf = item.type === 'pdf' || item.url?.startsWith('data:application/pdf') || item.url?.startsWith('asset://') || item.fileName?.toLowerCase().endsWith('.pdf');
 
                     if (isPdf) {
                       return (
