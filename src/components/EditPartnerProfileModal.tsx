@@ -7,6 +7,7 @@ import {
   AlertCircle, DollarSign, MessageCircle, FileText, 
   Lock, Save, Image as ImageIcon, Camera 
 } from 'lucide-react';
+import { compressImage, readFileAsDataUrl } from '../utils/fileUtils';
 
 interface EditPartnerProfileModalProps {
   isOpen: boolean;
@@ -122,45 +123,50 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
   };
 
   // Avatar file upload
-  const handleAvatarFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setAvatar(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 500, 0.85);
+        setAvatar(compressed);
+      } catch (err) {
+        console.error('Failed to compress avatar', err);
+      }
     }
   };
 
   // Portfolio file upload (Image & PDF supported)
-  const handlePortfolioFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePortfolioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          const sizeKb = Math.round(file.size / 1024);
-          const sizeFormatted = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      const sizeKb = Math.round(file.size / 1024);
+      const sizeFormatted = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
 
-          setWorkOutputs([
-            ...workOutputs,
-            {
-              id: `wo-upload-${Date.now()}`,
-              type: isPdf ? 'pdf' : 'image',
-              url: reader.result,
-              title: file.name.replace(/\.[^/.]+$/, '') || (isPdf ? 'Portofolio Dokumen PDF' : 'Hasil Karya Baru'),
-              description: isPdf ? `Dokumen Portofolio PDF (${sizeFormatted})` : undefined,
-              fileName: file.name,
-              fileSize: sizeFormatted
-            }
-          ]);
+      try {
+        let finalUrl = '';
+        if (isPdf) {
+          finalUrl = await readFileAsDataUrl(file);
+        } else {
+          // Compress portfolio image to ~80-120KB for high performance and zero database errors
+          finalUrl = await compressImage(file, 1200, 0.82);
         }
-      };
-      reader.readAsDataURL(file);
+
+        setWorkOutputs((prev) => [
+          ...prev,
+          {
+            id: `wo-upload-${Date.now()}`,
+            type: isPdf ? 'pdf' : 'image',
+            url: finalUrl,
+            title: file.name.replace(/\.[^/.]+$/, '') || (isPdf ? 'Portofolio Dokumen PDF' : 'Hasil Karya Baru'),
+            description: isPdf ? `Dokumen Portofolio PDF (${sizeFormatted})` : undefined,
+            fileName: file.name,
+            fileSize: sizeFormatted
+          }
+        ]);
+      } catch (err) {
+        console.error('Failed to process uploaded file', err);
+      }
     }
   };
 

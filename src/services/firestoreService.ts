@@ -12,6 +12,7 @@ import {
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { WorkerProfile, Review } from '../types';
 import { INITIAL_PROFILES, INITIAL_PENDING_PROFILES } from '../data/initialData';
+import { getDeletedProfileIds } from '../utils/storage';
 
 const ACTIVE_COLLECTION = 'activeProfiles';
 const PENDING_COLLECTION = 'pendingProfiles';
@@ -20,7 +21,8 @@ const TRASH_COLLECTION = 'trashProfiles';
 let isSeeding = false;
 
 /**
- * Clean up undefined values and oversized data URLs to prevent Firestore serialization or quota errors
+ * Clean up undefined values without corrupting image or PDF data URLs.
+ * Firestore supports document payloads up to 1 MB.
  */
 export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
   if (!obj || typeof obj !== 'object') return obj;
@@ -38,9 +40,6 @@ export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
       });
     } else if (value && typeof value === 'object') {
       result[key] = sanitizeForFirestore(value);
-    } else if (typeof value === 'string' && value.startsWith('data:') && value.length > 500000) {
-      // Prevent Firestore 1MB document limit exhaustion
-      result[key] = value.substring(0, 100) + '...[compacted]';
     } else {
       result[key] = value;
     }
@@ -50,31 +49,39 @@ export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
 
 /**
  * Seed initial profiles to Firestore if the activeProfiles collection is empty.
+ * Strictly respects deleted profiles so deleted default profiles are NEVER resurrected.
  */
 export async function seedInitialProfilesIfEmpty(): Promise<void> {
   if (isSeeding) return;
   try {
+    const deletedIds = new Set(getDeletedProfileIds());
     const snap = await getDocs(collection(db, ACTIVE_COLLECTION));
     if (snap.empty) {
       isSeeding = true;
       const batch = writeBatch(db);
       for (const profile of INITIAL_PROFILES) {
-        const ref = doc(db, ACTIVE_COLLECTION, profile.id);
-        batch.set(ref, sanitizeForFirestore(profile));
+        if (!deletedIds.has(profile.id)) {
+          const ref = doc(db, ACTIVE_COLLECTION, profile.id);
+          batch.set(ref, sanitizeForFirestore(profile));
+        }
       }
       for (const pending of INITIAL_PENDING_PROFILES) {
-        const ref = doc(db, PENDING_COLLECTION, pending.id);
-        batch.set(ref, sanitizeForFirestore(pending));
+        if (!deletedIds.has(pending.id)) {
+          const ref = doc(db, PENDING_COLLECTION, pending.id);
+          batch.set(ref, sanitizeForFirestore(pending));
+        }
       }
       await batch.commit();
     } else {
-      // Ensure user profile (wk-alif-murti) is present in cloud activeProfiles
-      const userRef = doc(db, ACTIVE_COLLECTION, 'wk-alif-murti');
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        const alifProfile = INITIAL_PROFILES.find(p => p.id === 'wk-alif-murti');
-        if (alifProfile) {
-          await setDoc(userRef, sanitizeForFirestore(alifProfile));
+      // Ensure user profile (wk-alif-murti) is present in cloud activeProfiles only if not deleted
+      if (!deletedIds.has('wk-alif-murti')) {
+        const userRef = doc(db, ACTIVE_COLLECTION, 'wk-alif-murti');
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          const alifProfile = INITIAL_PROFILES.find(p => p.id === 'wk-alif-murti');
+          if (alifProfile) {
+            await setDoc(userRef, sanitizeForFirestore(alifProfile));
+          }
         }
       }
     }
@@ -99,8 +106,12 @@ export function subscribeToActiveProfiles(
   return onSnapshot(
     colRef,
     (snapshot) => {
+      const deletedIds = new Set(getDeletedProfileIds());
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as WorkerProfile);
+        const list = snapshot.docs
+          .map((d) => d.data() as WorkerProfile)
+          .filter((p) => !deletedIds.has(p.id));
+
         // Sort so verified & featured are top, and newly submitted first
         list.sort((a, b) => {
           if (a.id === 'wk-alif-murti') return -1;
@@ -109,7 +120,8 @@ export function subscribeToActiveProfiles(
         });
         callback(list);
       } else {
-        callback(INITIAL_PROFILES);
+        const fallback = INITIAL_PROFILES.filter((p) => !deletedIds.has(p.id));
+        callback(fallback);
       }
     },
     (error) => {
@@ -402,6 +414,8 @@ export async function restoreProfileFromTrashCloud(
 export async function deletePermanentlyFromTrashCloud(profileId: string): Promise<void> {
   try {
     await deleteDoc(doc(db, TRASH_COLLECTION, profileId));
+    await deleteDoc(doc(db, ACTIVE_COLLECTION, profileId));
+    await deleteDoc(doc(db, PENDING_COLLECTION, profileId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${TRASH_COLLECTION}/${profileId}`);
   }

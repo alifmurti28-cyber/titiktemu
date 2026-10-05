@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WorkerProfile, PricePackage } from '../types';
 import { formatRupiah } from '../utils/storage';
+import { openOrDownloadPdf } from '../utils/fileUtils';
 import { 
   X, Star, MapPin, CheckCircle2, MessageCircle, 
   ExternalLink, Copy, Check, Share2, 
@@ -355,16 +356,17 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                                 {item.description}
                               </p>
                             )}
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download={item.fileName || `${item.title}.pdf`}
-                              className="brutal-btn w-full flex items-center justify-center gap-1.5 bg-[#FFD166] py-2 text-xs font-black text-[#1A1A1A] cursor-pointer"
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openOrDownloadPdf(item.url, item.fileName || `${item.title}.pdf`);
+                              }}
+                              className="brutal-btn w-full flex items-center justify-center gap-1.5 bg-[#FFD166] py-2 text-xs font-black text-[#1A1A1A] cursor-pointer hover:bg-[#ffe082]"
                             >
                               <Download className="h-3.5 w-3.5" />
                               <span>Buka / Unduh Dokumen PDF</span>
-                            </a>
+                            </button>
                           </div>
                         </div>
                       );
@@ -382,6 +384,10 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                             alt={item.title}
                             referrerPolicy="no-referrer"
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.src = 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80';
+                            }}
                           />
                         </div>
                         

@@ -7,17 +7,51 @@ const STORAGE_KEY_PROCESSED_PENDING = 'titiktemu_processed_pending_v2';
 const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v2';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
+const STORAGE_KEY_DELETED = 'titiktemu_permanently_deleted_ids_v2';
+
+export function getDeletedProfileIds(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DELETED);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function recordDeletedProfileId(id: string): void {
+  try {
+    const list = getDeletedProfileIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(list));
+    }
+  } catch (e) {
+    console.warn('Error recording deleted profile id', e);
+  }
+}
+
+export function unmarkDeletedProfileId(id: string): void {
+  try {
+    const list = getDeletedProfileIds();
+    const filtered = list.filter(item => item !== id);
+    localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(filtered));
+  } catch (e) {
+    // ignore
+  }
+}
 
 let memoryActiveCache: WorkerProfile[] | null = null;
 
 export function getActiveProfiles(): WorkerProfile[] {
+  const deletedIds = new Set(getDeletedProfileIds());
+
   let list = memoryActiveCache;
   if (!list || list.length === 0) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_PROFILES);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           list = parsed;
         }
       }
@@ -26,15 +60,12 @@ export function getActiveProfiles(): WorkerProfile[] {
     }
   }
 
-  if (!list || list.length === 0) {
-    list = INITIAL_PROFILES;
-  }
-
-  // Check if new default profiles (like Muhammad Alif Murti) are missing in stored array
-  const existingIds = new Set(list.map((p: WorkerProfile) => p.id));
-  const missingInitial = INITIAL_PROFILES.filter((ip) => !existingIds.has(ip.id));
-  if (missingInitial.length > 0) {
-    list = [...missingInitial, ...list];
+  // Only use INITIAL_PROFILES on the very first fresh start if storage was completely empty/null
+  if (!list) {
+    list = INITIAL_PROFILES.filter(p => !deletedIds.has(p.id));
+  } else {
+    // Filter out any profiles that were deleted by the admin!
+    list = list.filter(p => !deletedIds.has(p.id));
   }
 
   memoryActiveCache = list;
@@ -48,25 +79,13 @@ export function getActiveProfiles(): WorkerProfile[] {
 }
 
 export function saveActiveProfiles(profiles: WorkerProfile[]): void {
-  memoryActiveCache = profiles;
+  const deletedIds = new Set(getDeletedProfileIds());
+  const filtered = profiles.filter(p => !deletedIds.has(p.id));
+  memoryActiveCache = filtered;
   try {
-    localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(profiles));
+    localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(filtered));
   } catch (e) {
-    console.warn('LocalStorage quota exceeded on active profiles. Saving compact version...', e);
-    try {
-      const compact = profiles.map(p => ({
-        ...p,
-        workOutputs: p.workOutputs?.map(w => {
-          if (w.url && w.url.startsWith('data:') && w.url.length > 50000) {
-            return { ...w, url: w.url.substring(0, 100) + '...[compact]' };
-          }
-          return w;
-        })
-      }));
-      localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(compact));
-    } catch (e2) {
-      console.error('Cannot save even compact active profiles to localStorage', e2);
-    }
+    console.warn('LocalStorage save error on active profiles', e);
   }
 }
 
@@ -249,6 +268,7 @@ export function restoreProfileFromTrash(profileId: string, directPublish: boolea
 
   // Remove from trash
   saveTrashProfiles(trash.filter(p => p.id !== profileId));
+  unmarkDeletedProfileId(profileId);
 
   if (directPublish) {
     const active = getActiveProfiles();
@@ -270,11 +290,16 @@ export function restoreProfileFromTrash(profileId: string, directPublish: boolea
 }
 
 export function deletePermanentlyFromTrash(profileId: string): void {
+  recordDeletedProfileId(profileId);
   const trash = getTrashProfiles();
   saveTrashProfiles(trash.filter(p => p.id !== profileId));
+  const active = getActiveProfiles();
+  saveActiveProfiles(active.filter(p => p.id !== profileId));
 }
 
 export function emptyTrash(): void {
+  const trash = getTrashProfiles();
+  trash.forEach(p => recordDeletedProfileId(p.id));
   saveTrashProfiles([]);
 }
 
