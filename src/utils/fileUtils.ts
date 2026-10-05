@@ -1,16 +1,17 @@
 /**
  * Utility functions for handling and optimizing image and PDF uploads
  */
+import { getAsset } from '../services/assetService';
 
 /**
  * Compress an image file to a lightweight, high-quality JPEG Data URL.
- * Resizes large camera photos (e.g. 5-15MB) down to crisp ~60-120KB images
- * so they fit seamlessly in LocalStorage and Firestore without corruption.
+ * Resizes large camera photos (5-15MB) down to crisp ~30-50KB images
+ * so they fit seamlessly in LocalStorage and Firestore without corruption or size limits.
  */
 export function compressImage(
   file: File,
-  maxDimension: number = 1000,
-  quality: number = 0.8
+  maxDimension: number = 800,
+  quality: number = 0.68
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     // If not an image, return raw data URL
@@ -78,18 +79,28 @@ export function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 /**
- * Safely open or download a PDF file from a base64 Data URL or remote URL.
+ * Safely open or download a PDF file from a base64 Data URL, asset ID, or remote URL.
  * Converts base64 to a Blob Object URL to bypass browser iframe & base64 navigation restrictions.
  */
-export function openOrDownloadPdf(url: string, fileName: string = 'Portofolio.pdf'): void {
+export async function openOrDownloadPdf(
+  urlOrAssetId: string,
+  fileName: string = 'Portofolio.pdf'
+): Promise<void> {
   try {
-    if (!url) return;
+    if (!urlOrAssetId) return;
 
-    if (url.startsWith('data:application/pdf')) {
-      const parts = url.split(';base64,');
+    let targetUrl = urlOrAssetId;
+
+    // If it's an asset ID or key, retrieve from IndexedDB or Firestore cloud
+    if (!targetUrl.startsWith('data:') && !targetUrl.startsWith('http')) {
+      const fetched = await getAsset(targetUrl);
+      if (fetched) targetUrl = fetched;
+    }
+
+    if (targetUrl.startsWith('data:application/pdf')) {
+      const parts = targetUrl.split(';base64,');
       if (parts.length < 2) {
-        // Fallback to direct window
-        window.open(url, '_blank');
+        window.open(targetUrl, '_blank');
         return;
       }
 
@@ -121,12 +132,11 @@ export function openOrDownloadPdf(url: string, fileName: string = 'Portofolio.pd
       }, 5000);
     } else {
       // Remote web URL
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
   } catch (error) {
     console.error('Error opening PDF document', error);
-    // Ultimate fallback
-    window.open(url, '_blank');
+    window.open(urlOrAssetId, '_blank');
   }
 }
 

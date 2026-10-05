@@ -360,7 +360,7 @@ export const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openOrDownloadPdf(item.url, item.fileName || `${item.title}.pdf`);
+                                openOrDownloadPdf(item.url || item.id, item.fileName || `${item.title}.pdf`);
                               }}
                               className="brutal-btn w-full flex items-center justify-center gap-1.5 bg-[#FFD166] py-2 text-xs font-black text-[#1A1A1A] cursor-pointer hover:bg-[#ffe082]"
                             >

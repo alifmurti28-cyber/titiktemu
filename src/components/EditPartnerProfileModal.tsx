@@ -8,6 +8,7 @@ import {
   Lock, Save, Image as ImageIcon, Camera 
 } from 'lucide-react';
 import { compressImage, readFileAsDataUrl } from '../utils/fileUtils';
+import { saveAsset } from '../services/assetService';
 
 interface EditPartnerProfileModalProps {
   isOpen: boolean;
@@ -127,7 +128,7 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImage(file, 500, 0.85);
+        const compressed = await compressImage(file, 400, 0.7);
         setAvatar(compressed);
       } catch (err) {
         console.error('Failed to compress avatar', err);
@@ -143,19 +144,29 @@ export const EditPartnerProfileModal: React.FC<EditPartnerProfileModalProps> = (
       const sizeKb = Math.round(file.size / 1024);
       const sizeFormatted = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
 
+      if (isPdf && file.size > 1024 * 1024) {
+        alert('File PDF melebihi batas 1 MB. Mohon gunakan dokumen PDF di bawah 1 MB agar dapat tersimpan di server cloud dan terbuka seketika di semua perangkat.');
+        return;
+      }
+
       try {
+        const assetId = `wo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
         let finalUrl = '';
+
         if (isPdf) {
           finalUrl = await readFileAsDataUrl(file);
         } else {
-          // Compress portfolio image to ~80-120KB for high performance and zero database errors
-          finalUrl = await compressImage(file, 1200, 0.82);
+          // Compress portfolio image to ~30-50KB for instant loading across all devices
+          finalUrl = await compressImage(file, 800, 0.68);
         }
+
+        // Save to IndexedDB & Firestore dedicated profileAssets collection
+        await saveAsset(assetId, finalUrl, file.name);
 
         setWorkOutputs((prev) => [
           ...prev,
           {
-            id: `wo-upload-${Date.now()}`,
+            id: assetId,
             type: isPdf ? 'pdf' : 'image',
             url: finalUrl,
             title: file.name.replace(/\.[^/.]+$/, '') || (isPdf ? 'Portofolio Dokumen PDF' : 'Hasil Karya Baru'),
