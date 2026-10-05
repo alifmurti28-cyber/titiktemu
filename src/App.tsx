@@ -91,6 +91,9 @@ export default function App() {
     setFavorites(getFavorites());
     setIsAdmin(isAdminLoggedIn());
 
+    // Purge removed partner from cloud Firestore so it deletes everywhere live
+    deletePermanentlyFromTrashCloud('wk-alif-murti').catch(() => {});
+
     // 1. Cross-Tab Immediate Sync for tabs on the same origin (e.g. Vercel Tab 1 <-> Tab 2)
     const handleStorageChange = (e: StorageEvent) => {
       if (!e.key || e.key.includes('active_profiles')) {

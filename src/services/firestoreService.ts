@@ -98,17 +98,10 @@ export async function seedInitialProfilesIfEmpty(): Promise<void> {
       }
       await batch.commit();
     } else {
-      // Ensure user profile (wk-alif-murti) is present in cloud activeProfiles only if not deleted
-      if (!deletedIds.has('wk-alif-murti')) {
-        const userRef = doc(db, ACTIVE_COLLECTION, 'wk-alif-murti');
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          const alifProfile = INITIAL_PROFILES.find(p => p.id === 'wk-alif-murti');
-          if (alifProfile) {
-            await setDoc(userRef, sanitizeForFirestore(alifProfile));
-          }
-        }
-      }
+      // Ensure permanently deleted profiles (like wk-alif-murti) are erased from cloud
+      deleteDoc(doc(db, ACTIVE_COLLECTION, 'wk-alif-murti')).catch(() => {});
+      deleteDoc(doc(db, PENDING_COLLECTION, 'wk-alif-murti')).catch(() => {});
+      deleteDoc(doc(db, TRASH_COLLECTION, 'wk-alif-murti')).catch(() => {});
     }
   } catch (error) {
     console.warn('Notice: Firestore initial sync/seed fallback', error);
@@ -124,7 +117,7 @@ export function subscribeToActiveProfiles(
   callback: (profiles: WorkerProfile[]) => void,
   onError?: (err: any) => void
 ): Unsubscribe {
-  // Ensure default seeds exist
+  // Ensure default seeds exist and purged profiles stay deleted
   seedInitialProfilesIfEmpty().catch(() => {});
 
   const colRef = collection(db, ACTIVE_COLLECTION);
@@ -135,17 +128,19 @@ export function subscribeToActiveProfiles(
       if (!snapshot.empty) {
         const list = snapshot.docs
           .map((d) => d.data() as WorkerProfile)
-          .filter((p) => !deletedIds.has(p.id));
+          .filter((p) => !deletedIds.has(p.id) && p.id !== 'wk-alif-murti');
 
-        // Sort so verified & featured are top, and newly submitted first
+        // Sort so featured & verified are displayed attractively, then by rating
         list.sort((a, b) => {
-          if (a.id === 'wk-alif-murti') return -1;
-          if (b.id === 'wk-alif-murti') return 1;
-          return 0;
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          if (a.verified && !b.verified) return -1;
+          if (!a.verified && b.verified) return 1;
+          return (b.rating || 0) - (a.rating || 0);
         });
         callback(list);
       } else {
-        const fallback = INITIAL_PROFILES.filter((p) => !deletedIds.has(p.id));
+        const fallback = INITIAL_PROFILES.filter((p) => !deletedIds.has(p.id) && p.id !== 'wk-alif-murti');
         callback(fallback);
       }
     },

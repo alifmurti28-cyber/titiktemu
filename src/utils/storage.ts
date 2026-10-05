@@ -8,13 +8,15 @@ const STORAGE_KEY_TRASH = 'titiktemu_trash_profiles_v2';
 const STORAGE_KEY_FAVORITES = 'titiktemu_user_favorites_v1';
 const STORAGE_KEY_ADMIN_AUTH = 'titiktemu_admin_session_v1';
 const STORAGE_KEY_DELETED = 'titiktemu_permanently_deleted_ids_v2';
+const DEFAULT_PERMANENT_DELETED_IDS = ['wk-alif-murti'];
 
 export function getDeletedProfileIds(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_DELETED);
-    return raw ? JSON.parse(raw) : [];
+    const parsed: string[] = raw ? JSON.parse(raw) : [];
+    return Array.from(new Set([...DEFAULT_PERMANENT_DELETED_IDS, ...parsed]));
   } catch (e) {
-    return [];
+    return DEFAULT_PERMANENT_DELETED_IDS;
   }
 }
 
